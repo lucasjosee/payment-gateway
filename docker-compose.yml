@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: gateway
+      # Usa as mesmas variáveis que a aplicação lê no application.yaml, para banco e aplicação terem sempre o mesmo usuário e senha.
+      # O Postgres só aplica esses valores quando o volume pgdata ainda está vazio, então trocar a senha depois não tem efeito.
+      POSTGRES_USER: ${DB_USERNAME:-gateway}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-gateway}
+    ports:
+      # A porta fica presa ao localhost porque, no Linux, o Docker abre portas por fora do firewall.
+      # Sem isso, qualquer máquina na mesma rede poderia tentar entrar com a senha padrão.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
