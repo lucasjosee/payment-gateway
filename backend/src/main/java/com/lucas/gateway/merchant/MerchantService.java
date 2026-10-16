@@ -19,6 +19,12 @@ public class MerchantService {
 
 	@Transactional
 	public CreateMerchantResponse register(CreateMerchantRequest request) {
+		// Esta checagem dá um 409 claro no caso comum. Se duas requisições com o mesmo e-mail chegarem
+		// ao mesmo tempo, as duas podem passar daqui, e quem barra a segunda é o índice único do banco.
+		if (merchantRepository.existsByEmailIgnoreCase(request.email())) {
+			throw new EmailAlreadyRegisteredException();
+		}
+
 		Merchant merchant = merchantRepository.save(new Merchant(request.name(), request.email()));
 
 		ApiKeyGenerator.GeneratedApiKey key = apiKeyGenerator.generate();

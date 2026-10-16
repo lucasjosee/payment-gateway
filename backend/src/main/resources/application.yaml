@@ -11,3 +11,8 @@ spring:
       # Quem cria e altera tabelas é o Flyway. O Hibernate só confere se as entidades batem com o banco
       # e impede a aplicação de subir se houver diferença.
       ddl-auto: validate
+  web:
+    # Fixa o idioma das mensagens de validação. Sem isso, elas seguiriam o idioma da máquina ou o
+    # Accept-Language do cliente, e a API responderia em português aqui e em inglês na EC2.
+    locale: pt-BR
+    locale-resolver: fixed
