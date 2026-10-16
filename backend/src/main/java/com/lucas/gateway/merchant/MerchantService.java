@@ -3,6 +3,8 @@ package com.lucas.gateway.merchant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 public class MerchantService {
 
@@ -31,5 +33,13 @@ public class MerchantService {
 		apiKeyRepository.save(new ApiKey(merchant, key.prefix(), key.hash()));
 
 		return new CreateMerchantResponse(merchant.getId(), merchant.getName(), merchant.getEmail(), key.plainText());
+	}
+
+	@Transactional(readOnly = true)
+	public MerchantResponse findById(UUID id) {
+		// O id vem de uma chave válida, e a chave estrangeira garante que toda chave tem lojista.
+		// Não encontrar aqui seria um bug, então o 500 do handler genérico é a resposta certa.
+		Merchant merchant = merchantRepository.findById(id).orElseThrow();
+		return new MerchantResponse(merchant.getId(), merchant.getName(), merchant.getEmail());
 	}
 }

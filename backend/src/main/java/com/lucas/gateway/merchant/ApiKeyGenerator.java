@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.HexFormat;
+import java.util.Optional;
 
 @Component
 public class ApiKeyGenerator {
@@ -25,15 +26,23 @@ public class ApiKeyGenerator {
 		byte[] randomBytes = new byte[RANDOM_BYTES];
 		secureRandom.nextBytes(randomBytes);
 		String plainText = MARKER + Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
-		return new GeneratedApiKey(plainText, plainText.substring(0, PREFIX_LENGTH), sha256Hex(plainText));
+		return new GeneratedApiKey(plainText, prefixOf(plainText).orElseThrow(), hashOf(plainText));
+	}
+
+	// Também é usado na autenticação, onde o texto vem do header e pode ter qualquer tamanho. Por isso o Optional.
+	public static Optional<String> prefixOf(String plainText) {
+		if (plainText.length() < PREFIX_LENGTH) {
+			return Optional.empty();
+		}
+		return Optional.of(plainText.substring(0, PREFIX_LENGTH));
 	}
 
 	// SHA-256 sem salt é suficiente porque a chave é totalmente aleatória: não existe lista de chaves
 	// comuns para testar, diferente de uma senha escolhida por uma pessoa, que pediria bcrypt ou Argon2.
-	private static String sha256Hex(String value) {
+	public static String hashOf(String plainText) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
-			return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
+			return HexFormat.of().formatHex(digest.digest(plainText.getBytes(StandardCharsets.UTF_8)));
 		} catch (NoSuchAlgorithmException e) {
 			throw new IllegalStateException("Toda JVM é obrigada a oferecer SHA-256", e);
 		}
