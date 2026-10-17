@@ -20,3 +20,13 @@ spring:
     # Accept-Language do cliente, e a API responderia em português aqui e em inglês na EC2.
     locale: pt-BR
     locale-resolver: fixed
+
+springdoc:
+  # O Swagger fica ligado de propósito em todo ambiente, inclusive na EC2, porque é a vitrine do projeto.
+  # Ele mostra quais rotas existem, mas não dá acesso a nada: as rotas com cadeado continuam exigindo a chave.
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+  # Os controllers não declaram o formato da resposta, e sem isto o Swagger mostraria */* em vez de JSON.
+  default-produces-media-type: application/json

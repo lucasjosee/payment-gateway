@@ -14,7 +14,7 @@ import java.util.List;
 
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
-	private static final String HEADER = "X-Api-Key";
+	static final String HEADER = "X-Api-Key";
 
 	private final ApiKeyAuthenticator authenticator;
 
