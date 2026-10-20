@@ -6,6 +6,7 @@ import com.lucas.gateway.charge.fraud.FraudService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -41,8 +42,22 @@ public class ChargeService {
 		return toResponse(chargeRepository.save(charge));
 	}
 
+	@Transactional(readOnly = true)
+	public ChargeResponse findById(UUID merchantId, UUID chargeId) {
+		// O lojista entra no filtro da própria consulta, então a cobrança de outro lojista dá o mesmo 404 de um id
+		// que não existe. Um 403 confirmaria que aquele id existe, e isso já é informação demais para um estranho.
+		Charge charge = chargeRepository.findByIdAndMerchantId(chargeId, merchantId)
+				.orElseThrow(ChargeNotFoundException::new);
+		return toResponse(charge);
+	}
+
+	// A lista de eventos só é buscada no banco na primeira vez que alguém a lê. Por isso a conversão acontece
+	// aqui, com a transação ainda aberta, e não no controller.
 	private ChargeResponse toResponse(Charge charge) {
+		List<ChargeResponse.Event> events = charge.getEvents().stream()
+				.map(event -> new ChargeResponse.Event(event.getFromStatus(), event.getToStatus(), event.getCreatedAt()))
+				.toList();
 		return new ChargeResponse(charge.getId(), charge.getStatus(), charge.getAmountCents(), charge.getCurrency(),
-				charge.getCardLast4(), charge.getDeclineReason(), charge.getCreatedAt());
+				charge.getCardLast4(), charge.getDeclineReason(), charge.getCreatedAt(), events);
 	}
 }
