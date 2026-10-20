@@ -44,11 +44,38 @@ public class ChargeService {
 
 	@Transactional(readOnly = true)
 	public ChargeResponse findById(UUID merchantId, UUID chargeId) {
-		// O lojista entra no filtro da própria consulta, então a cobrança de outro lojista dá o mesmo 404 de um id
-		// que não existe. Um 403 confirmaria que aquele id existe, e isso já é informação demais para um estranho.
-		Charge charge = chargeRepository.findByIdAndMerchantId(chargeId, merchantId)
-				.orElseThrow(ChargeNotFoundException::new);
+		return toResponse(findOwnedCharge(merchantId, chargeId));
+	}
+
+	@Transactional
+	public ChargeResponse capture(UUID merchantId, UUID chargeId) {
+		return transition(merchantId, chargeId, ChargeStatus.CAPTURED);
+	}
+
+	@Transactional
+	public ChargeResponse cancel(UUID merchantId, UUID chargeId) {
+		return transition(merchantId, chargeId, ChargeStatus.CANCELED);
+	}
+
+	@Transactional
+	public ChargeResponse refund(UUID merchantId, UUID chargeId) {
+		return transition(merchantId, chargeId, ChargeStatus.REFUNDED);
+	}
+
+	// Não precisa chamar save. A cobrança foi carregada dentro desta transação, então o Hibernate acompanha
+	// o que muda nela e, quando a transação termina, grava sozinho o novo status e o evento que o transitionTo criou.
+	private ChargeResponse transition(UUID merchantId, UUID chargeId, ChargeStatus next) {
+		Charge charge = findOwnedCharge(merchantId, chargeId);
+		charge.transitionTo(next);
 		return toResponse(charge);
+	}
+
+	// Toda rota que recebe o id de uma cobrança busca por aqui, para nenhuma delas esquecer de conferir o dono.
+	// O lojista entra no filtro da própria consulta, então a cobrança de outro lojista dá o mesmo 404 de um id
+	// que não existe. Um 403 confirmaria que aquele id existe, e isso já é informação demais para um estranho.
+	private Charge findOwnedCharge(UUID merchantId, UUID chargeId) {
+		return chargeRepository.findByIdAndMerchantId(chargeId, merchantId)
+				.orElseThrow(ChargeNotFoundException::new);
 	}
 
 	// A lista de eventos só é buscada no banco na primeira vez que alguém a lê. Por isso a conversão acontece

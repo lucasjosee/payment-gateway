@@ -39,4 +39,21 @@ public class ChargeController {
 	public ChargeResponse findById(@AuthenticationPrincipal AuthenticatedMerchant merchant, @PathVariable UUID id) {
 		return chargeService.findById(merchant.id(), id);
 	}
+
+	// Quando a máquina de estados não permite a mudança, a Charge lança InvalidChargeTransitionException,
+	// e o ApiExceptionHandler responde 409 com os dois status na mensagem.
+	@PostMapping("/{id}/capture")
+	public ChargeResponse capture(@AuthenticationPrincipal AuthenticatedMerchant merchant, @PathVariable UUID id) {
+		return chargeService.capture(merchant.id(), id);
+	}
+
+	@PostMapping("/{id}/cancel")
+	public ChargeResponse cancel(@AuthenticationPrincipal AuthenticatedMerchant merchant, @PathVariable UUID id) {
+		return chargeService.cancel(merchant.id(), id);
+	}
+
+	@PostMapping("/{id}/refund")
+	public ChargeResponse refund(@AuthenticationPrincipal AuthenticatedMerchant merchant, @PathVariable UUID id) {
+		return chargeService.refund(merchant.id(), id);
+	}
 }
