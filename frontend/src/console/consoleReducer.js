@@ -17,6 +17,9 @@ export function consoleReducer(state, action) {
         : [...state.entries, entry].slice(-MAX_ENTRIES)
       return { ...state, entries }
     }
+    // Um pedido que ainda estava em andamento volta a aparecer quando termina, porque o reducer não o conhece mais.
+    case 'cleared':
+      return { ...state, entries: [] }
     default:
       return state
   }

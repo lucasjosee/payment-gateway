@@ -1,0 +1,40 @@
+.row td {
+  overflow: hidden;
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row:hover td {
+  background: var(--color-surface-sunken);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.method {
+  font-weight: var(--weight-semibold);
+}
+
+.duration {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.success {
+  color: var(--color-success-text);
+}
+
+.warning {
+  color: var(--color-warning-text);
+}
+
+.danger {
+  color: var(--color-danger-text);
+}
+
+.pending {
+  color: var(--color-text-muted);
+}

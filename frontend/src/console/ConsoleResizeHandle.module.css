@@ -1,0 +1,36 @@
+/* A área que aceita o arrasto é mais alta que a linha visível, para não exigir pontaria. */
+.handle {
+  position: absolute;
+  top: calc(var(--space-1) * -1);
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: var(--space-2);
+  cursor: row-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: var(--focus-width);
+  transform: translateY(-50%);
+  transition: background-color var(--duration-fast) ease;
+}
+
+.handle:hover::after {
+  background: var(--color-accent);
+}
+
+/* No foco pelo teclado, a própria linha vira o indicador, com a cor de foco que passa no contraste. */
+.handle:focus-visible {
+  outline: none;
+}
+
+.handle:focus-visible::after {
+  background: var(--color-focus);
+}

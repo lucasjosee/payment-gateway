@@ -1,0 +1,52 @@
+/* O position: relative é a referência da alça, que fica por cima da borda de cima do painel. */
+.panel {
+  position: relative;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-1) var(--space-4);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.filters {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.count {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-text);
+  font-size: var(--text-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fechado, a seta aponta para cima, que é para onde o console abre. Aberto, ela gira e aponta para baixo. */
+.chevron,
+.chevronOpen {
+  width: var(--text-md);
+  height: var(--text-md);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--duration-fast) ease;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}

@@ -1,0 +1,59 @@
+/* O max-height protege janelas pequenas: a altura salva pode ter sido escolhida numa tela maior. */
+.scroll {
+  overflow: auto;
+  max-height: 70dvh;
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+}
+
+/*
+  Com layout fixo, as larguras das colunas vêm do cabeçalho e não mudam conforme o texto de cada linha. A largura
+  mínima garante espaço para a rota em telas estreitas, onde o console passa a rolar de lado.
+*/
+.table {
+  width: 100%;
+  min-width: 48rem;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th {
+  position: sticky;
+  top: 0;
+  padding: var(--space-1) var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-weight: var(--weight-medium);
+  text-align: left;
+}
+
+.time {
+  width: 8rem;
+}
+
+.method {
+  width: 4.5rem;
+}
+
+.status {
+  width: 5rem;
+}
+
+.table .duration {
+  width: 6rem;
+  text-align: right;
+}
+
+.requestId {
+  width: 7rem;
+}
+
+.empty {
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}

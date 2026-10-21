@@ -1,4 +1,6 @@
-import { Link, NavLink, Outlet } from 'react-router'
+import { useEffect, useRef } from 'react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router'
+import ConsolePanel from '../console/ConsolePanel.jsx'
 import ApiStatus from './ApiStatus.jsx'
 import Logo from './Logo.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
@@ -9,6 +11,15 @@ function navLinkClass({ isActive }) {
 }
 
 function Layout() {
+  const { pathname } = useLocation()
+  const contentRef = useRef(null)
+
+  // Quem rola é a faixa do conteúdo, e não a janela, então o navegador não volta ao topo sozinho quando a página
+  // muda. Sem isto, abrir uma cobrança no fim de uma lista longa mostraria o detalhe já rolado para baixo.
+  useEffect(() => {
+    contentRef.current.scrollTo(0, 0)
+  }, [pathname])
+
   return (
     <div className={styles.layout}>
       <header className={styles.header}>
@@ -30,17 +41,21 @@ function Layout() {
         <ThemeToggle />
       </header>
 
-      <main className={styles.main}>
-        <Outlet />
-      </main>
+      <div ref={contentRef} className={styles.content}>
+        <main className={styles.main}>
+          <Outlet />
+        </main>
 
-      <footer className={styles.footer}>
-        <p>Projeto de estudo, sem vínculo com instituições financeiras.</p>
-        <div className={styles.footerLinks}>
-          <ApiStatus />
-          <Link to="/componentes">Componentes</Link>
-        </div>
-      </footer>
+        <footer className={styles.footer}>
+          <p>Projeto de estudo, sem vínculo com instituições financeiras.</p>
+          <div className={styles.footerLinks}>
+            <ApiStatus />
+            <Link to="/componentes">Componentes</Link>
+          </div>
+        </footer>
+      </div>
+
+      <ConsolePanel />
     </div>
   )
 }

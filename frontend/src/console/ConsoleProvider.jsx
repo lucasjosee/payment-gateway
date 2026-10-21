@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react'
+import { useEffect, useMemo, useReducer } from 'react'
 import { subscribeToRequests } from '../api/client.js'
 import { ConsoleContext } from './ConsoleContext.js'
 import { consoleReducer, initialConsoleState } from './consoleReducer.js'
@@ -8,7 +8,11 @@ function ConsoleProvider({ children }) {
 
   useEffect(() => subscribeToRequests((entry) => dispatch({ type: 'entryUpdated', entry })), [])
 
-  return <ConsoleContext value={state}>{children}</ConsoleContext>
+  // Sem o useMemo, cada render do provider criaria um objeto novo, e todo componente que lê o contexto
+  // renderizaria de novo mesmo sem nenhuma requisição nova.
+  const value = useMemo(() => ({ entries: state.entries, clear: () => dispatch({ type: 'cleared' }) }), [state.entries])
+
+  return <ConsoleContext value={value}>{children}</ConsoleContext>
 }
 
 export default ConsoleProvider

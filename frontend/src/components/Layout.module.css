@@ -1,20 +1,19 @@
 /*
-  A última linha da grade é do console de requisições, que ocupa a parte de baixo da janela, como o DevTools do
-  navegador. Enquanto ele não existe, a linha fica vazia e não ocupa espaço.
+  A janela tem três faixas, como com o DevTools aberto: cabeçalho, conteúdo e console. Só a do meio rola, e o
+  console, quando cresce, encolhe o conteúdo em vez de cobrir a página.
+*/
+/*
+  O minmax(0, 1fr) prende a coluna à largura da janela. Sem ele, a coluna cresceria até caber o conteúdo mais
+  largo, como a tabela do console, e a página inteira passaria a rolar de lado no celular.
 */
 .layout {
   display: grid;
-  grid-template-rows: auto 1fr auto auto;
-  grid-template-areas:
-    'header'
-    'main'
-    'footer'
-    'console';
-  min-height: 100dvh;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr auto;
+  height: 100dvh;
 }
 
 .header {
-  grid-area: header;
   display: flex;
   align-items: center;
   gap: var(--space-6);
@@ -64,8 +63,20 @@
   background: var(--color-accent);
 }
 
+/*
+  O min-height: 0 deixa a faixa ficar menor que o próprio conteúdo. Sem ele, um item de grid cresce até caber tudo,
+  e a página empurraria o console para fora da janela em vez de rolar.
+*/
+.content {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Cresce para ocupar a sobra, e assim o rodapé fica no fim da faixa mesmo numa página curta. */
 .main {
-  grid-area: main;
+  flex: 1 0 auto;
   width: 100%;
   max-width: var(--content-width);
   margin: 0 auto;
@@ -73,7 +84,6 @@
 }
 
 .footer {
-  grid-area: footer;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
