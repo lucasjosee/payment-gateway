@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,6 +16,7 @@ import java.util.List;
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
 	static final String HEADER = "X-Api-Key";
+	static final String MDC_KEY = "merchantId";
 
 	private final ApiKeyAuthenticator authenticator;
 
@@ -33,6 +35,9 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 				SecurityContext context = SecurityContextHolder.createEmptyContext();
 				context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(merchant, null, List.of()));
 				SecurityContextHolder.setContext(context);
+				// Daqui em diante, as linhas de log deste pedido mostram o lojista. Quem tira o valor do MDC no fim
+				// do pedido é o RequestIdFilter.
+				MDC.put(MDC_KEY, merchant.id().toString());
 			});
 		}
 

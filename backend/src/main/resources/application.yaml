@@ -5,6 +5,13 @@ server:
     # decide para onde mandar cada pedido. O prefixo só aparece aqui: controllers e SecurityConfig usam as rotas sem ele.
     context-path: /api
 
+logging:
+  pattern:
+    # Acrescenta ao formato padrão do Spring Boot, antes do nome da classe, o ID do pedido (posto pelo RequestIdFilter)
+    # e o lojista (posto pelo ApiKeyAuthenticationFilter). O "-" aparece quando o valor não existe, como nas linhas da
+    # inicialização ou num pedido sem API key válida.
+    correlation: "[req=%X{requestId:--} merchant=%X{merchantId:--}] "
+
 spring:
   application:
     name: gateway

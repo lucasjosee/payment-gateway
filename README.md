@@ -21,6 +21,8 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 
 A autenticação é pelo header `X-Api-Key`. A documentação interativa fica em `/api/swagger-ui.html`, com o botão *Authorize* para informar a chave.
 
+Toda resposta traz o header `X-Request-Id`, e o mesmo valor aparece nas linhas de log daquele pedido, junto com o id do lojista. Se o pedido já chegar com esse header, a API reaproveita o valor, desde que tenha até 64 caracteres entre letras, dígitos, `-`, `.` e `_`. Fora disso, ela gera um novo.
+
 ## Diagramas
 
 O caminho de um pedido de cobrança pela aplicação:
