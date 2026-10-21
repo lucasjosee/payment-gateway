@@ -19,6 +19,10 @@ public class IdempotencyService {
 	// O mesmo prazo do Stripe, que cobre as retentativas automáticas de um cliente ao longo de um dia inteiro.
 	private static final Duration KEY_TTL = Duration.ofHours(24);
 
+	// O mesmo limite da coluna key da V3__idempotency_keys.sql. Sem esta barreira, uma chave maior só seria
+	// recusada pelo banco, no meio do INSERT, e o cliente receberia um 500 em vez de um 400.
+	private static final int KEY_MAX_LENGTH = 255;
+
 	private final IdempotencyKeyRepository repository;
 	private final RequestHasher requestHasher;
 	private final TransactionTemplate transactionTemplate;
@@ -34,6 +38,10 @@ public class IdempotencyService {
 
 	public <T> ResponseEntity<T> execute(UUID merchantId, String key, HttpServletRequest httpRequest, Object body,
 			Class<T> responseType, Supplier<ResponseEntity<T>> action) {
+		if (key.isBlank() || key.length() > KEY_MAX_LENGTH) {
+			throw new InvalidIdempotencyKeyException(KEY_MAX_LENGTH);
+		}
+
 		String requestHash = requestHasher.hash(httpRequest.getMethod(), httpRequest.getRequestURI(), body);
 
 		if (!repository.claim(merchantId, key, requestHash, KEY_TTL)) {

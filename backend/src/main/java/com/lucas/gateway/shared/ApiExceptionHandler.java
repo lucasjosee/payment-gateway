@@ -23,6 +23,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
 	private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
+	@ExceptionHandler(BadRequestException.class)
+	public ProblemDetail handleBadRequest(BadRequestException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+	}
+
 	@ExceptionHandler(NotFoundException.class)
 	public ProblemDetail handleNotFound(NotFoundException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
