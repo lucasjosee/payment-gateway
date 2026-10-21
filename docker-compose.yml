@@ -13,6 +13,28 @@ services:
       - "127.0.0.1:5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      # O -h força a checagem por TCP. Num volume novo, o Postgres sobe primeiro um servidor temporário que só
+      # aceita conexões locais pelo socket, roda a inicialização e reinicia. Sem o -h, esse servidor temporário
+      # já contaria como pronto, e o app poderia tentar conectar justo durante o reinício.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  app:
+    build: ./backend
+    environment:
+      # Dentro da rede do compose, localhost é o próprio container do app. O banco é encontrado pelo nome do serviço.
+      DB_URL: jdbc:postgresql://db:5432/gateway
+      DB_USERNAME: ${DB_USERNAME:-gateway}
+      DB_PASSWORD: ${DB_PASSWORD:-gateway}
+    ports:
+      # Presa ao localhost pelo mesmo motivo da porta do banco.
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
   pgdata:
