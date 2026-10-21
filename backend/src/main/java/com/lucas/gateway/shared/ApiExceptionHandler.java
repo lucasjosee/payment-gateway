@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -36,6 +37,16 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	@ExceptionHandler(ConflictException.class)
 	public ProblemDetail handleConflict(ConflictException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+	}
+
+	// O @Version da Charge faz o Hibernate gravar com UPDATE ... WHERE version = ?. Se outro pedido alterou a
+	// cobrança entre a leitura e a gravação, esse UPDATE não encontra a linha e a transação inteira é desfeita.
+	// Isso só aparece no commit, quando o service já terminou, e por isso não dá para transformar em exceção de
+	// domínio como as outras. A mensagem é fixa porque a da exceção traz o nome da classe e o id da entidade.
+	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+	public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+				"Outro pedido alterou estes dados ao mesmo tempo. Consulte o estado atual e tente de novo.");
 	}
 
 	@ExceptionHandler(UnprocessableException.class)

@@ -11,6 +11,12 @@ spring:
     username: ${DB_USERNAME:gateway}
     password: ${DB_PASSWORD:gateway}
   jpa:
+    # Ligado, que é o padrão do Spring Boot, o EntityManager fica aberto até o fim da requisição e segura a
+    # conexão com o banco mesmo depois de a transação terminar. Quando um pedido falha, o IdempotencyService
+    # libera a chave usando outra conexão, então cada pedido com erro passa a precisar de duas. Com vários falhando
+    # ao mesmo tempo, todos ficam com uma e esperando a segunda, até o pool estourar o tempo limite.
+    # Desligado, tudo o que vem do banco precisa ser lido dentro da transação, como o ChargeService já faz.
+    open-in-view: false
     hibernate:
       # Quem cria e altera tabelas é o Flyway. O Hibernate só confere se as entidades batem com o banco
       # e impede a aplicação de subir se houver diferença.
