@@ -3,6 +3,8 @@ package com.lucas.gateway.charge;
 import com.lucas.gateway.charge.fraud.ChargeAttempt;
 import com.lucas.gateway.charge.fraud.FraudDecision;
 import com.lucas.gateway.charge.fraud.FraudService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,15 @@ public class ChargeService {
 		return toResponse(findOwnedCharge(merchantId, chargeId));
 	}
 
+	@Transactional(readOnly = true)
+	public ChargePage list(UUID merchantId, int page, int size) {
+		Page<ChargeSummary> charges = chargeRepository
+				.findByMerchantIdOrderByCreatedAtDescIdDesc(merchantId, PageRequest.of(page, size))
+				.map(this::toSummary);
+		return new ChargePage(charges.getContent(), charges.getNumber(), charges.getSize(),
+				charges.getTotalElements(), charges.getTotalPages());
+	}
+
 	@Transactional
 	public ChargeResponse capture(UUID merchantId, UUID chargeId) {
 		return transition(merchantId, chargeId, ChargeStatus.CAPTURED);
@@ -86,5 +97,10 @@ public class ChargeService {
 				.toList();
 		return new ChargeResponse(charge.getId(), charge.getStatus(), charge.getAmountCents(), charge.getCurrency(),
 				charge.getCardLast4(), charge.getDeclineReason(), charge.getCreatedAt(), events);
+	}
+
+	private ChargeSummary toSummary(Charge charge) {
+		return new ChargeSummary(charge.getId(), charge.getStatus(), charge.getAmountCents(), charge.getCurrency(),
+				charge.getCardLast4(), charge.getDeclineReason(), charge.getCreatedAt());
 	}
 }

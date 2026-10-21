@@ -6,6 +6,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -46,6 +50,13 @@ public class ChargeController {
 			HttpServletRequest httpRequest) {
 		return idempotencyService.execute(merchant.id(), idempotencyKey, httpRequest, request, ChargeResponse.class,
 				() -> ResponseEntity.status(HttpStatus.CREATED).body(chargeService.create(merchant.id(), request)));
+	}
+
+	@GetMapping
+	public ChargePage list(@AuthenticationPrincipal AuthenticatedMerchant merchant,
+			@RequestParam(defaultValue = "0") @PositiveOrZero int page,
+			@RequestParam(defaultValue = "20") @Min(1) @Max(100) int size) {
+		return chargeService.list(merchant.id(), page, size);
 	}
 
 	@GetMapping("/{id}")

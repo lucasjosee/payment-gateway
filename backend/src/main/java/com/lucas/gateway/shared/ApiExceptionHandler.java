@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import java.util.List;
@@ -79,6 +80,24 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
 		ProblemDetail problem = ex.getBody();
 		problem.setDetail("Um ou mais campos são inválidos.");
+		problem.setProperty("errors", errors);
+		return handleExceptionInternal(ex, problem, headers, status, request);
+	}
+
+	// O handleMethodArgumentNotValid cobre só o corpo do pedido. Quando a validação falha num parâmetro da query
+	// string, como o size da listagem de cobranças, o Spring lança esta outra exceção, e a resposta padrão dela
+	// diz apenas "Validation failure", sem apontar o parâmetro.
+	@Override
+	protected ResponseEntity<Object> handleHandlerMethodValidationException(HandlerMethodValidationException ex,
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+		List<InvalidField> errors = ex.getParameterValidationResults().stream()
+				.flatMap(result -> result.getResolvableErrors().stream()
+						.map(error -> new InvalidField(result.getMethodParameter().getParameterName(),
+								error.getDefaultMessage())))
+				.toList();
+
+		ProblemDetail problem = ex.getBody();
+		problem.setDetail("Um ou mais parâmetros são inválidos.");
 		problem.setProperty("errors", errors);
 		return handleExceptionInternal(ex, problem, headers, status, request);
 	}

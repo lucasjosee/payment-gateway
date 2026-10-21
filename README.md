@@ -13,6 +13,7 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 | `POST` | `/api/merchants` | não | não | Cadastra o lojista e devolve a API key, uma única vez |
 | `GET` | `/api/merchants/me` | sim | não | Dados do lojista autenticado |
 | `POST` | `/api/charges` | sim | obrigatória | Cria a cobrança, que já nasce `AUTHORIZED` ou `DECLINED` |
+| `GET` | `/api/charges` | sim | não | Lista as cobranças do lojista, das mais recentes para as mais antigas, em páginas (`page` a partir de 0 e `size` de 1 a 100) |
 | `GET` | `/api/charges/{id}` | sim | não | Consulta a cobrança com o histórico de estados |
 | `POST` | `/api/charges/{id}/capture` | sim | obrigatória | Captura uma cobrança autorizada |
 | `POST` | `/api/charges/{id}/cancel` | sim | obrigatória | Cancela uma cobrança autorizada |
