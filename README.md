@@ -10,15 +10,15 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 
 | Método | Rota | Autenticação | `Idempotency-Key` | O que faz |
 |---|---|---|---|---|
-| `POST` | `/merchants` | não | não | Cadastra o lojista e devolve a API key, uma única vez |
-| `GET` | `/merchants/me` | sim | não | Dados do lojista autenticado |
-| `POST` | `/charges` | sim | obrigatória | Cria a cobrança, que já nasce `AUTHORIZED` ou `DECLINED` |
-| `GET` | `/charges/{id}` | sim | não | Consulta a cobrança com o histórico de estados |
-| `POST` | `/charges/{id}/capture` | sim | obrigatória | Captura uma cobrança autorizada |
-| `POST` | `/charges/{id}/cancel` | sim | obrigatória | Cancela uma cobrança autorizada |
-| `POST` | `/charges/{id}/refund` | sim | obrigatória | Estorna uma cobrança capturada |
+| `POST` | `/api/merchants` | não | não | Cadastra o lojista e devolve a API key, uma única vez |
+| `GET` | `/api/merchants/me` | sim | não | Dados do lojista autenticado |
+| `POST` | `/api/charges` | sim | obrigatória | Cria a cobrança, que já nasce `AUTHORIZED` ou `DECLINED` |
+| `GET` | `/api/charges/{id}` | sim | não | Consulta a cobrança com o histórico de estados |
+| `POST` | `/api/charges/{id}/capture` | sim | obrigatória | Captura uma cobrança autorizada |
+| `POST` | `/api/charges/{id}/cancel` | sim | obrigatória | Cancela uma cobrança autorizada |
+| `POST` | `/api/charges/{id}/refund` | sim | obrigatória | Estorna uma cobrança capturada |
 
-A autenticação é pelo header `X-Api-Key`. A documentação interativa fica em `/swagger-ui.html`, com o botão *Authorize* para informar a chave.
+A autenticação é pelo header `X-Api-Key`. A documentação interativa fica em `/api/swagger-ui.html`, com o botão *Authorize* para informar a chave.
 
 ## Diagramas
 
@@ -55,14 +55,14 @@ Com Docker, um comando sobe o banco e a API:
 docker compose up --build
 ```
 
-A API fica em `http://localhost:8080` e o Swagger em `http://localhost:8080/swagger-ui.html`.
+A API fica em `http://localhost:8080/api` e o Swagger em `http://localhost:8080/api/swagger-ui.html`.
 
 ### Demo
 
 Com a API no ar, o script abaixo percorre o fluxo principal com `curl`: cadastro, cobrança aprovada, repetição idempotente, cobrança recusada, captura, estorno e isolamento entre lojistas. Ele confere a resposta de cada passo e para no primeiro que não sair como esperado.
 
 ```bash
-./scripts/demo.sh http://localhost:8080
+./scripts/demo.sh http://localhost:8080/api
 ```
 
 ### Desenvolvimento

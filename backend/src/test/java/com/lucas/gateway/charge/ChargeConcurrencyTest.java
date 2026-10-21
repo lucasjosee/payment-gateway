@@ -46,7 +46,9 @@ class ChargeConcurrencyTest {
 
 	@Test
 	void onlyOneOfManySimultaneousCapturesSucceeds() throws Exception {
-		RestClient http = RestClient.create("http://localhost:" + port);
+		// O /api é o context-path do application.yaml. O ChargeIdempotencyTest não precisa dele porque o MockMvc
+		// entrega o pedido direto aos controllers, sem passar pelo servidor.
+		RestClient http = RestClient.create("http://localhost:" + port + "/api");
 		String apiKey = registerMerchant(http);
 		ChargeResponse charge = createCharge(http, apiKey);
 		assertThat(charge.status()).isEqualTo(ChargeStatus.AUTHORIZED);

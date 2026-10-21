@@ -21,6 +21,8 @@ public class SecurityConfig {
 				// nem sessão: a chave vai num header que só é enviado de propósito, então não há o que proteger.
 				.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				// As rotas são comparadas já sem o context-path do application.yaml, então "/merchants" vale para
+				// /api/merchants. Escrever "/api/merchants" aqui faria a regra nunca casar.
 				.authorizeHttpRequests(routes -> routes
 						.requestMatchers(HttpMethod.POST, "/merchants").permitAll()
 						.requestMatchers("/actuator/health/**").permitAll()

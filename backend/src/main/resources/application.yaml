@@ -1,3 +1,10 @@
+server:
+  servlet:
+    # Todas as rotas, inclusive o actuator e o Swagger, passam a começar com /api. O front vai ficar no mesmo domínio
+    # da API, e é por esse prefixo que quem fica na frente dos dois (o Vite em desenvolvimento, o CloudFront na AWS)
+    # decide para onde mandar cada pedido. O prefixo só aparece aqui: controllers e SecurityConfig usam as rotas sem ele.
+    context-path: /api
+
 spring:
   application:
     name: gateway

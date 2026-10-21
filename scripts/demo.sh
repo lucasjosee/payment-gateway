@@ -2,11 +2,11 @@
 # Roda o roteiro da demo contra uma instância da API e para no primeiro passo que não der o resultado esperado.
 # Assim o mesmo script serve para apresentar e para conferir se um deploy está funcionando.
 #
-# Uso: ./scripts/demo.sh http://localhost:8080
+# Uso: ./scripts/demo.sh http://localhost:8080/api
 set -euo pipefail
 
 if [[ $# -ne 1 ]]; then
-	echo "Uso: $0 <url-da-api>, por exemplo: $0 http://localhost:8080" >&2
+	echo "Uso: $0 <url-da-api>, por exemplo: $0 http://localhost:8080/api" >&2
 	exit 1
 fi
 BASE_URL=${1%/}
@@ -88,7 +88,7 @@ new_merchant_body() {
 }
 
 if ! curl -sf -o /dev/null "$BASE_URL/actuator/health"; then
-	echo "A API não respondeu em $BASE_URL/actuator/health. Confira a URL e se a aplicação está no ar." >&2
+	echo "A API não respondeu em $BASE_URL/actuator/health. Confira se a URL termina em /api e se a aplicação está no ar." >&2
 	exit 1
 fi
 echo "Demo do gateway de pagamento em $BASE_URL"
