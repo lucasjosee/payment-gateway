@@ -1,4 +1,5 @@
 import { Link, NavLink, Outlet } from 'react-router'
+import ApiStatus from './ApiStatus.jsx'
 import Logo from './Logo.jsx'
 import ThemeToggle from './ThemeToggle.jsx'
 import styles from './Layout.module.css'
@@ -35,7 +36,10 @@ function Layout() {
 
       <footer className={styles.footer}>
         <p>Projeto de estudo, sem vínculo com instituições financeiras.</p>
-        <Link to="/componentes">Componentes</Link>
+        <div className={styles.footerLinks}>
+          <ApiStatus />
+          <Link to="/componentes">Componentes</Link>
+        </div>
       </footer>
     </div>
   )
