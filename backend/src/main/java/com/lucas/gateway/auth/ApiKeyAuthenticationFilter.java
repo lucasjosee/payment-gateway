@@ -16,7 +16,7 @@ import java.util.List;
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
 	static final String HEADER = "X-Api-Key";
-	static final String MDC_KEY = "merchantId";
+	public static final String MDC_KEY = "merchantId";
 
 	private final ApiKeyAuthenticator authenticator;
 

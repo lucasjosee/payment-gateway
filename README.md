@@ -18,6 +18,7 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 | `POST` | `/api/charges/{id}/capture` | sim | obrigatória | Captura uma cobrança autorizada |
 | `POST` | `/api/charges/{id}/cancel` | sim | obrigatória | Cancela uma cobrança autorizada |
 | `POST` | `/api/charges/{id}/refund` | sim | obrigatória | Estorna uma cobrança capturada |
+| `GET` | `/api/dev/logs` | sim | não | Logs dos pedidos do próprio lojista, ao vivo por Server-Sent Events. Só existe com o profile `demo` |
 
 A autenticação é pelo header `X-Api-Key`. A documentação interativa fica em `/api/swagger-ui.html`, com o botão *Authorize* para informar a chave.
 
@@ -66,6 +67,18 @@ Com a API no ar, o script abaixo percorre o fluxo principal com `curl`: cadastro
 
 ```bash
 ./scripts/demo.sh http://localhost:8080/api
+```
+
+### Logs ao vivo (profile `demo`)
+
+Com o profile `demo`, a API guarda em memória as últimas 200 linhas de log de cada lojista e as transmite ao vivo, junto com o SQL que cada pedido executou, com `?` no lugar dos valores. Dá para ver a idempotência reservando a chave, o antifraude decidindo e o lock otimista barrando uma captura simultânea. Cada lojista recebe só as linhas dos próprios pedidos.
+
+```bash
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+
+# em outro terminal, com a chave de um lojista
+curl -N http://localhost:8080/api/dev/logs -H "X-Api-Key: <chave>"
 ```
 
 ### Desenvolvimento

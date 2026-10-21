@@ -1,6 +1,8 @@
 package com.lucas.gateway.idempotency;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -15,6 +17,8 @@ import java.util.function.Supplier;
 // tem que ficar visível para os outros pedidos antes de a ação começar.
 @Service
 public class IdempotencyService {
+
+	private static final Logger log = LoggerFactory.getLogger(IdempotencyService.class);
 
 	// O mesmo prazo do Stripe, que cobre as retentativas automáticas de um cliente ao longo de um dia inteiro.
 	private static final Duration KEY_TTL = Duration.ofHours(24);
@@ -47,6 +51,8 @@ public class IdempotencyService {
 		if (!repository.claim(merchantId, key, requestHash, KEY_TTL)) {
 			return replay(merchantId, key, requestHash, responseType);
 		}
+		// A chave em si não vai para o log: ela é escolhida pelo cliente e poderia trazer qualquer texto.
+		log.info("Idempotency-Key nova, reservada para este pedido");
 
 		try {
 			// A ação e a gravação da resposta acontecem na mesma transação, e o @Transactional do service chamado
@@ -79,11 +85,13 @@ public class IdempotencyService {
 		if (!stored.completed()) {
 			throw new IdempotencyKeyInProgressException();
 		}
+		log.info("Idempotency-Key repetida com o mesmo pedido: devolvendo a resposta guardada, sem executar de novo");
 		return ResponseEntity.status(stored.responseStatus())
 				.body(jsonMapper.readValue(stored.responseBody(), responseType));
 	}
 
 	private void releaseAfterFailure(UUID merchantId, String key, RuntimeException failure) {
+		log.info("O pedido falhou: a Idempotency-Key é liberada para o cliente poder tentar de novo");
 		try {
 			repository.release(merchantId, key);
 		} catch (RuntimeException releaseFailure) {

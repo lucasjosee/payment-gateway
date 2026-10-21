@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
 public class RequestIdFilter extends OncePerRequestFilter {
 
 	static final String HEADER = "X-Request-Id";
-	static final String MDC_KEY = "requestId";
+	public static final String MDC_KEY = "requestId";
 
 	// O ID recebido vai parar nas linhas de log. Sem esta restrição, um cliente poderia mandar uma quebra de linha
 	// seguida de uma linha de log inventada, ou um texto enorme que se repetiria em todas as linhas do pedido.

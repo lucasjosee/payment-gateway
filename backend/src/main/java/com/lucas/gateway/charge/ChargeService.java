@@ -3,6 +3,8 @@ package com.lucas.gateway.charge;
 import com.lucas.gateway.charge.fraud.ChargeAttempt;
 import com.lucas.gateway.charge.fraud.FraudDecision;
 import com.lucas.gateway.charge.fraud.FraudService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,8 @@ import java.util.UUID;
 
 @Service
 public class ChargeService {
+
+	private static final Logger log = LoggerFactory.getLogger(ChargeService.class);
 
 	private final ChargeRepository chargeRepository;
 	private final FraudService fraudService;
@@ -41,7 +45,14 @@ public class ChargeService {
 				: Charge.declined(merchantId, request.amountCents(), request.currency(), cardLast4, cardFingerprint,
 						decision.declineReason());
 
-		return toResponse(chargeRepository.save(charge));
+		Charge saved = chargeRepository.save(charge);
+		if (decision.isApproved()) {
+			log.info("Antifraude aprovou: a cobrança {} nasce AUTHORIZED", saved.getId());
+		} else {
+			log.info("Antifraude recusou pelo motivo {}: a cobrança {} nasce DECLINED", decision.declineReason(),
+					saved.getId());
+		}
+		return toResponse(saved);
 	}
 
 	@Transactional(readOnly = true)
@@ -77,7 +88,11 @@ public class ChargeService {
 	// o que muda nela e, quando a transação termina, grava sozinho o novo status e o evento que o transitionTo criou.
 	private ChargeResponse transition(UUID merchantId, UUID chargeId, ChargeStatus next) {
 		Charge charge = findOwnedCharge(merchantId, chargeId);
+		ChargeStatus previous = charge.getStatus();
 		charge.transitionTo(next);
+		// A mensagem diz "aceitou", e não "gravou", porque o UPDATE só acontece no fim da transação, e é lá que o
+		// lock otimista ainda pode desfazer tudo se outro pedido tiver alterado a cobrança antes.
+		log.info("Máquina de estados aceitou {} -> {} na cobrança {}", previous, next, chargeId);
 		return toResponse(charge);
 	}
 

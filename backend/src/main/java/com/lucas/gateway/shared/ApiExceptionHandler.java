@@ -35,8 +35,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
 	}
 
+	// Os 409 e 422 são as regras de negócio barrando um pedido, como a máquina de estados ou a idempotência, e por isso
+	// ficam registrados. As mensagens são todas montadas pela própria API e não trazem nada que o cliente enviou.
 	@ExceptionHandler(ConflictException.class)
 	public ProblemDetail handleConflict(ConflictException ex) {
+		log.info("Recusado com 409: {}", ex.getMessage());
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 	}
 
@@ -46,12 +49,14 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 	// domínio como as outras. A mensagem é fixa porque a da exceção traz o nome da classe e o id da entidade.
 	@ExceptionHandler(ObjectOptimisticLockingFailureException.class)
 	public ProblemDetail handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+		log.info("Recusado com 409 pelo lock otimista: outro pedido gravou a cobrança primeiro, e esta gravação foi desfeita");
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
 				"Outro pedido alterou estes dados ao mesmo tempo. Consulte o estado atual e tente de novo.");
 	}
 
 	@ExceptionHandler(UnprocessableException.class)
 	public ProblemDetail handleUnprocessable(UnprocessableException ex) {
+		log.info("Recusado com 422: {}", ex.getMessage());
 		return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
 	}
 
