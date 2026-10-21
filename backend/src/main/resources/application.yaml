@@ -26,6 +26,10 @@ gateway:
   # Fora daqui a variável precisa estar definida, porque com o banco e esta chave em mãos dá para testar números
   # de cartão até achar o de cada cobrança. Trocar a chave depois faz o antifraude não reconhecer cartões antigos.
   card-fingerprint-key: ${CARD_FINGERPRINT_KEY:dev-only-card-fingerprint-key}
+  # Chave do HMAC que gera o request_hash das Idempotency-Keys. Pelo mesmo motivo da chave acima, fora daqui ela
+  # precisa estar definida. Trocá-la tem pouco efeito: por até 24 horas, repetir um pedido antigo dá 422 em vez de
+  # devolver a resposta guardada.
+  idempotency-hash-key: ${IDEMPOTENCY_HASH_KEY:dev-only-idempotency-hash-key}
 
 springdoc:
   # O Swagger fica ligado de propósito em todo ambiente, inclusive na EC2, porque é a vitrine do projeto.

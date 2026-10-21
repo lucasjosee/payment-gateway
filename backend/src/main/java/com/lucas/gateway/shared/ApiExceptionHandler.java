@@ -33,6 +33,11 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
 	}
 
+	@ExceptionHandler(UnprocessableException.class)
+	public ProblemDetail handleUnprocessable(UnprocessableException ex) {
+		return ProblemDetail.forStatusAndDetail(HttpStatus.UNPROCESSABLE_CONTENT, ex.getMessage());
+	}
+
 	@ExceptionHandler(AuthenticationException.class)
 	public ProblemDetail handleUnauthenticated(AuthenticationException ex) {
 		return ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED,
