@@ -1,0 +1,12 @@
+import styles from './Card.module.css'
+
+function Card({ title, className, children }) {
+  return (
+    <section className={[styles.card, className].filter(Boolean).join(' ')}>
+      {title && <h2 className={styles.title}>{title}</h2>}
+      {children}
+    </section>
+  )
+}
+
+export default Card

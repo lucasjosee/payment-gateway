@@ -1,0 +1,118 @@
+/*
+  A última linha da grade é do console de requisições, que ocupa a parte de baixo da janela, como o DevTools do
+  navegador. Enquanto ele não existe, a linha fica vazia e não ocupa espaço.
+*/
+.layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  grid-template-areas:
+    'header'
+    'main'
+    'footer'
+    'console';
+  min-height: 100dvh;
+}
+
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  min-height: var(--header-height);
+  padding: 0 var(--space-6);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.brand {
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  align-self: stretch;
+  margin-right: auto;
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
+.navLink:hover {
+  color: var(--color-text);
+}
+
+.active {
+  color: var(--color-text);
+}
+
+/* A barra laranja fica por cima da borda do cabeçalho, como se a aba ativa estivesse aberta para a página. */
+.active::after {
+  content: '';
+  position: absolute;
+  right: var(--space-3);
+  bottom: -1px;
+  left: var(--space-3);
+  height: var(--space-1);
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  background: var(--color-accent);
+}
+
+.main {
+  grid-area: main;
+  width: 100%;
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: var(--space-7) var(--space-6);
+}
+
+.footer {
+  grid-area: footer;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-6);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 48rem) {
+  .header {
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4) 0;
+  }
+
+  /* Com os links na linha de baixo, é o logo que empurra o botão de tema para a direita. */
+  .brand {
+    margin-right: auto;
+  }
+
+  /* No celular, os links descem para uma linha própria e rolam de lado se não couberem. */
+  .nav {
+    order: 3;
+    width: 100%;
+    min-height: var(--space-7);
+    overflow-x: auto;
+  }
+
+  .navLink {
+    white-space: nowrap;
+  }
+
+  .main {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .footer {
+    padding: var(--space-4);
+  }
+}

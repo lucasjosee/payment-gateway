@@ -1,0 +1,100 @@
+/*
+  Todas as cores, espaçamentos e medidas de tipografia do front saem daqui. Os componentes só usam estas variáveis.
+
+  Cada cor é declarada uma vez, com light-dark(cor do tema claro, cor do tema escuro). O navegador escolhe o lado
+  pelo color-scheme do elemento onde a cor é usada: no :root ele segue o sistema operacional, e o data-theme força
+  um dos dois. Como o data-theme vale para qualquer elemento, um pedaço da página pode ficar num tema diferente do
+  resto, como faz a página de componentes.
+
+  Os contrastes de texto passam no WCAG AA (4,5:1). Bordas de campo e o anel de foco passam no mínimo de 3:1.
+*/
+
+:root {
+  color-scheme: light dark;
+
+  /* Neutros: dominam a interface. */
+  --color-bg: light-dark(#f6f7f9, #16191f);
+  --color-surface: light-dark(#ffffff, #1e222a);
+  --color-surface-sunken: light-dark(#eef0f3, #121419);
+  --color-text: light-dark(#17191c, #eceef1);
+  --color-text-muted: light-dark(#5e6470, #a1a8b3);
+  --color-border: light-dark(#e2e5ea, #2c313a);
+  /* Mais escura que a de cima porque é a única coisa que mostra onde um campo começa e termina. */
+  --color-border-strong: light-dark(#8a919c, #6b7380);
+
+  /*
+    Laranja: só como acento, nunca como cor de texto sobre fundo claro, onde ficaria com 2,6:1. Por isso o texto
+    em cima dele é escuro.
+  */
+  --color-accent: #ff6b1a;
+  --color-accent-hover: light-dark(#f25a07, #ff8a4c);
+  --color-accent-subtle: light-dark(#fff0e6, #3a2416);
+  --color-on-accent: #17191c;
+  /* No tema claro, o laranja do acento não chega a 3:1 contra o fundo, então o anel de foco usa um mais escuro. */
+  --color-focus: light-dark(#d9480f, #ff6b1a);
+
+  /* Tons de status, para badges e mensagens. Cada par de fundo e texto passa em 4,5:1. */
+  --color-neutral-bg: light-dark(#eef0f3, #2a2f37);
+  --color-neutral-text: light-dark(#3f4550, #c4cad3);
+  --color-info-bg: light-dark(#e6effc, #1b2a40);
+  --color-info-text: light-dark(#1d4e8f, #94bdf7);
+  --color-success-bg: light-dark(#e1f3e8, #18301f);
+  --color-success-text: light-dark(#176237, #86d6a6);
+  --color-warning-bg: light-dark(#fcf1d6, #352a10);
+  --color-warning-text: light-dark(#7a4f00, #f0c76e);
+  --color-danger-bg: light-dark(#fce6e6, #3d1e21);
+  --color-danger-text: light-dark(#a31919, #f7a3a3);
+
+  /* Tipografia: tamanhos da escala clássica (12, 14, 16, 18, 21, 24, 36), com 16px como base. */
+  --font-sans: 'Figtree Variable', system-ui, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.3125rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 2.25rem;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --tracking-tight: -0.015em;
+
+  /* Espaçamento: múltiplos de 4px. */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4rem;
+
+  /* Raios: crescem com o tamanho do elemento, em vez de um valor só para tudo. */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 999px;
+
+  /* Sombra só no que flutua sobre a página, como o painel do console. Cards ficam no plano, com borda. */
+  --shadow-floating: 0 8px 24px light-dark(rgb(23 25 28 / 0.12), rgb(0 0 0 / 0.45));
+
+  --focus-width: 3px;
+  --focus-offset: 2px;
+  --opacity-disabled: 0.5;
+  --duration-fast: 120ms;
+
+  --header-height: 4rem;
+  --content-width: 72rem;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+}

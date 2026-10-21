@@ -3,7 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gateway de Pagamento</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Ponte</title>
+    <script>
+      // Aplica o tema escolhido antes de a página aparecer, para ela não piscar no tema errado. Usa a mesma chave
+      // do src/theme.js, que cuida do resto depois que o React carrega.
+      try {
+        const theme = localStorage.getItem('ponte-theme')
+        if (theme) document.documentElement.dataset.theme = theme
+      } catch {
+        // Sem acesso ao armazenamento, a página segue o tema do sistema.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

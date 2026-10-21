@@ -1,0 +1,27 @@
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mark {
+  width: var(--space-6);
+  height: var(--space-6);
+}
+
+.tile {
+  fill: var(--color-accent);
+}
+
+.bridge {
+  fill: var(--color-on-accent);
+  stroke: var(--color-on-accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.wordmark {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+}

@@ -1,0 +1,8 @@
+.icon {
+  width: var(--text-md);
+  height: var(--text-md);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
