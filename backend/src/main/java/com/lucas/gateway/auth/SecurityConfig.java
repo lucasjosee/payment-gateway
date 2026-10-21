@@ -1,5 +1,6 @@
 package com.lucas.gateway.auth;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,6 +25,11 @@ public class SecurityConfig {
 				// As rotas são comparadas já sem o context-path do application.yaml, então "/merchants" vale para
 				// /api/merchants. Escrever "/api/merchants" aqui faria a regra nunca casar.
 				.authorizeHttpRequests(routes -> routes
+						// Quando uma exceção escapa de todos os handlers, como uma falha do banco durante a autenticação,
+						// o Tomcat encaminha o pedido para /error. Esse encaminhamento passa de novo por aqui como um pedido
+						// anônimo, e sem esta regra o erro virava um 401. A regra vale para o encaminhamento, e não para a
+						// rota, então abrir /error direto continua exigindo a chave.
+						.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
 						.requestMatchers(HttpMethod.POST, "/merchants").permitAll()
 						.requestMatchers("/actuator/health/**").permitAll()
 						.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
