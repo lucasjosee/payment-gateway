@@ -15,6 +15,18 @@
   background: var(--color-surface-sunken);
 }
 
+/*
+  As linhas do último experimento do laboratório. O seletor tem o mesmo peso do hover e vem depois dele, então o
+  destaque não some quando o mouse passa por cima.
+*/
+.row.highlighted td {
+  background: var(--color-accent-subtle);
+}
+
+.row.highlighted td:first-child {
+  box-shadow: inset var(--focus-width) 0 0 var(--color-accent);
+}
+
 .toggle {
   display: flex;
   padding: 0;

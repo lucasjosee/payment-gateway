@@ -10,7 +10,15 @@ function ConsoleProvider({ children }) {
 
   // Sem o useMemo, cada render do provider criaria um objeto novo, e todo componente que lê o contexto
   // renderizaria de novo mesmo sem nenhuma requisição nova.
-  const value = useMemo(() => ({ entries: state.entries, clear: () => dispatch({ type: 'cleared' }) }), [state.entries])
+  const value = useMemo(
+    () => ({
+      entries: state.entries,
+      highlightedTag: state.highlightedTag,
+      clear: () => dispatch({ type: 'cleared' }),
+      highlight: (tag) => dispatch({ type: 'highlighted', tag }),
+    }),
+    [state.entries, state.highlightedTag],
+  )
 
   return <ConsoleContext value={value}>{children}</ConsoleContext>
 }

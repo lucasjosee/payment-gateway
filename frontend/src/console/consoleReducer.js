@@ -1,7 +1,8 @@
 // Uma aba aberta por horas acumularia requisições sem fim. Passado o limite, as mais antigas saem.
 const MAX_ENTRIES = 200
 
-export const initialConsoleState = { entries: [] }
+// highlightedTag é a tag das requisições que o console destaca, as do último experimento do laboratório.
+export const initialConsoleState = { entries: [], highlightedTag: null }
 
 export function consoleReducer(state, action) {
   switch (action.type) {
@@ -17,9 +18,11 @@ export function consoleReducer(state, action) {
         : [...state.entries, entry].slice(-MAX_ENTRIES)
       return { ...state, entries }
     }
+    case 'highlighted':
+      return { ...state, highlightedTag: action.tag }
     // Um pedido que ainda estava em andamento volta a aparecer quando termina, porque o reducer não o conhece mais.
     case 'cleared':
-      return { ...state, entries: [] }
+      return { ...state, entries: [], highlightedTag: null }
     default:
       return state
   }

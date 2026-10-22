@@ -8,7 +8,7 @@ import { useConsole } from './useConsole.js'
 import styles from './ConsolePanel.module.css'
 
 function ConsolePanel() {
-  const { entries, clear } = useConsole()
+  const { entries, highlightedTag, clear } = useConsole()
   const [preferences, setPreferences] = useState(loadPreferences)
   const { open, height, filter } = preferences
 
@@ -54,6 +54,7 @@ function ConsolePanel() {
       {open && (
         <ConsoleTable
           entries={showingErrors ? errors : entries}
+          highlightedTag={highlightedTag}
           height={height}
           emptyMessage={
             showingErrors

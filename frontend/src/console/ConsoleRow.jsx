@@ -11,7 +11,7 @@ const TIME_FORMAT = new Intl.DateTimeFormat('pt-BR', {
   fractionalSecondDigits: 3,
 })
 
-function ConsoleRow({ entry }) {
+function ConsoleRow({ entry, highlighted }) {
   const [expanded, setExpanded] = useState(false)
   const detailRef = useRef(null)
 
@@ -27,7 +27,10 @@ function ConsoleRow({ entry }) {
     <>
       {/* Com o mouse, a linha inteira abre o detalhe. O botão é o caminho pelo teclado: o clique dele sobe até a
           linha, então os dois passam pelo mesmo onClick. */}
-      <tr className={expanded ? `${styles.row} ${styles.expanded}` : styles.row} onClick={() => setExpanded(!expanded)}>
+      <tr
+        className={[styles.row, expanded && styles.expanded, highlighted && styles.highlighted].filter(Boolean).join(' ')}
+        onClick={() => setExpanded(!expanded)}
+      >
         <td>
           <button type="button" className={styles.toggle} aria-expanded={expanded} aria-label="Detalhes da requisição">
             <svg className={styles.chevron} viewBox="0 0 24 24" aria-hidden="true">

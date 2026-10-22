@@ -5,7 +5,7 @@ import styles from './ConsoleTable.module.css'
 // Até esta distância do fim, em pixels, a lista ainda conta como "no fim".
 const FOLLOW_THRESHOLD = 32
 
-function ConsoleTable({ entries, height, emptyMessage }) {
+function ConsoleTable({ entries, highlightedTag, height, emptyMessage }) {
   const scrollRef = useRef(null)
   const followingRef = useRef(true)
 
@@ -42,7 +42,11 @@ function ConsoleTable({ entries, height, emptyMessage }) {
           </thead>
           <tbody>
             {entries.map((entry) => (
-              <ConsoleRow key={entry.id} entry={entry} />
+              <ConsoleRow
+                key={entry.id}
+                entry={entry}
+                highlighted={entry.tag !== null && entry.tag === highlightedTag}
+              />
             ))}
           </tbody>
         </table>
