@@ -1,3 +1,7 @@
+.row {
+  cursor: pointer;
+}
+
 .row td {
   overflow: hidden;
   padding: var(--space-1) var(--space-3);
@@ -6,8 +10,51 @@
   white-space: nowrap;
 }
 
-.row:hover td {
+.row:hover td,
+.expanded td {
   background: var(--color-surface-sunken);
+}
+
+.toggle {
+  display: flex;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+/* A célula corta o que passa da borda dela. Colado no botão, o anel de foco cabe no espaço interno da célula. */
+.toggle:focus-visible {
+  outline-offset: 0;
+}
+
+.chevron {
+  width: var(--text-md);
+  height: var(--text-md);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--duration-fast) ease;
+}
+
+.expanded .chevron {
+  transform: rotate(90deg);
+}
+
+/*
+  O detalhe tem o mesmo fundo da linha aberta, para os dois parecerem um bloco só. O scroll-margin-top deixa espaço
+  para o cabeçalho fixo da tabela e para a linha clicada quando o detalhe é mais alto que o console e a rolagem o
+  alinha pelo topo.
+*/
+.detail {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  scroll-margin-top: var(--space-8);
 }
 
 .muted {

@@ -1,0 +1,17 @@
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Envio e resposta lado a lado. A tabela do console nunca fica mais estreita que 48rem, então as duas colunas cabem. */
+.messages {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+}

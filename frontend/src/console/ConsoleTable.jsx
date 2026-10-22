@@ -31,6 +31,7 @@ function ConsoleTable({ entries, height, emptyMessage }) {
         <table className={styles.table}>
           <thead>
             <tr>
+              <th scope="col" className={styles.toggle} aria-label="Detalhes" />
               <th scope="col" className={styles.time}>Horário</th>
               <th scope="col" className={styles.method}>Método</th>
               <th scope="col">Rota</th>

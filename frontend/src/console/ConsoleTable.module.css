@@ -30,6 +30,10 @@
   text-align: left;
 }
 
+.toggle {
+  width: 2.5rem;
+}
+
 .time {
   width: 8rem;
 }
