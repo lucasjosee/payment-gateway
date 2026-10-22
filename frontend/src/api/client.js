@@ -38,17 +38,19 @@ export function subscribeToRequests(listener) {
 
 export const api = {
   get: (path) => request('GET', path),
-  // idempotent: true gera uma Idempotency-Key nova para o pedido.
-  post: (path, { body, idempotent = false } = {}) => request('POST', path, { body, idempotent }),
+  // idempotent: true gera uma Idempotency-Key nova para o pedido. Quem precisa mostrar ou repetir a chave, como a
+  // tela de nova cobrança, passa a sua em idempotencyKey.
+  post: (path, { body, idempotent = false, idempotencyKey } = {}) =>
+    request('POST', path, { body, idempotencyKey: idempotencyKey ?? (idempotent ? crypto.randomUUID() : undefined) }),
 }
 
-async function request(method, path, { body, idempotent = false } = {}) {
+async function request(method, path, { body, idempotencyKey } = {}) {
   const headers = {}
   if (apiKey) {
     headers['X-Api-Key'] = apiKey
   }
-  if (idempotent) {
-    headers['Idempotency-Key'] = crypto.randomUUID()
+  if (idempotencyKey) {
+    headers['Idempotency-Key'] = idempotencyKey
   }
   if (body !== undefined) {
     headers['Content-Type'] = 'application/json'
