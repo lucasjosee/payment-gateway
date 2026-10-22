@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import ConsoleDetail from './ConsoleDetail.jsx'
 import { statusLabel, statusTone } from './entryStatus.js'
+import { formatTime } from './formatTime.js'
 import styles from './ConsoleRow.module.css'
-
-// Com milissegundos, para dar para ver a ordem de pedidos disparados juntos, como no laboratório.
-const TIME_FORMAT = new Intl.DateTimeFormat('pt-BR', {
-  hour: '2-digit',
-  minute: '2-digit',
-  second: '2-digit',
-  fractionalSecondDigits: 3,
-})
 
 function ConsoleRow({ entry, highlighted }) {
   const [expanded, setExpanded] = useState(false)
@@ -38,7 +31,7 @@ function ConsoleRow({ entry, highlighted }) {
             </svg>
           </button>
         </td>
-        <td className={styles.muted}>{TIME_FORMAT.format(new Date(entry.startedAt))}</td>
+        <td className={styles.muted}>{formatTime(entry.startedAt)}</td>
         <td className={styles.method}>{entry.method}</td>
         <td title={entry.path}>{entry.path}</td>
         <td className={styles[statusTone(entry)]}>{statusLabel(entry)}</td>

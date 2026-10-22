@@ -2,7 +2,7 @@
 const MAX_ENTRIES = 200
 
 // highlightedTag é a tag das requisições que o console destaca, as do último experimento do laboratório.
-export const initialConsoleState = { entries: [], highlightedTag: null }
+export const initialConsoleState = { entries: [], highlightedTag: null, tab: 'requests', logFilter: null }
 
 export function consoleReducer(state, action) {
   switch (action.type) {
@@ -20,6 +20,12 @@ export function consoleReducer(state, action) {
     }
     case 'highlighted':
       return { ...state, highlightedTag: action.tag }
+    case 'tabSelected':
+      return { ...state, tab: action.tab }
+    case 'serverLogsRequested':
+      return { ...state, tab: 'server', logFilter: action.requestId }
+    case 'logFilterCleared':
+      return { ...state, logFilter: null }
     // Um pedido que ainda estava em andamento volta a aparecer quando termina, porque o reducer não o conhece mais.
     case 'cleared':
       return { ...state, entries: [], highlightedTag: null }

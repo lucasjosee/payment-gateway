@@ -9,7 +9,19 @@ export default defineConfig({
     // só. Em desenvolvimento, o Vite faz o mesmo papel. O caminho segue inteiro, com o /api, porque o Spring Boot
     // também atende sob esse prefixo.
     proxy: {
-      '/api': 'http://localhost:8080',
+      '/api': {
+        target: 'http://localhost:8080',
+        // Se a API cai no meio de um stream, o proxy não avisa o navegador. Derrubar a resposta deixa o front reconectar.
+        configure: (proxy) => {
+          proxy.on('proxyRes', (proxyRes, req, res) => {
+            proxyRes.on('close', () => {
+              if (!proxyRes.complete) {
+                res.destroy()
+              }
+            })
+          })
+        },
+      },
     },
   },
 })

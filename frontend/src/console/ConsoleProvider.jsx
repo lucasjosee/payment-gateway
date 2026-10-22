@@ -12,12 +12,14 @@ function ConsoleProvider({ children }) {
   // renderizaria de novo mesmo sem nenhuma requisição nova.
   const value = useMemo(
     () => ({
-      entries: state.entries,
-      highlightedTag: state.highlightedTag,
+      ...state,
       clear: () => dispatch({ type: 'cleared' }),
       highlight: (tag) => dispatch({ type: 'highlighted', tag }),
+      selectTab: (tab) => dispatch({ type: 'tabSelected', tab }),
+      showServerLogs: (requestId) => dispatch({ type: 'serverLogsRequested', requestId }),
+      clearLogFilter: () => dispatch({ type: 'logFilterCleared' }),
     }),
-    [state.entries, state.highlightedTag],
+    [state],
   )
 
   return <ConsoleContext value={value}>{children}</ConsoleContext>

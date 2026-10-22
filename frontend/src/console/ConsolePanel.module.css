@@ -20,6 +20,7 @@
   margin-left: auto;
 }
 
+.tabs,
 .filters {
   display: flex;
   gap: var(--space-1);

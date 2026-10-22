@@ -109,6 +109,45 @@ async function request(method, path, { body, idempotencyKey, tag } = {}) {
   return responseBody
 }
 
+// Fica fora da lista de requisições do console, onde apareceria como um pedido que nunca termina.
+export async function streamServerLogs({ signal, onOpen, onLine }) {
+  const response = await fetch(`${BASE_PATH}/dev/logs`, {
+    headers: { 'X-Api-Key': apiKey, Accept: 'text/event-stream' },
+    signal,
+  })
+  if (!response.ok) {
+    throw new ApiError(response.status, await readBody(response), response.headers.get('X-Request-Id'))
+  }
+  onOpen()
+  await readEvents(response.body, (data) => onLine(JSON.parse(data)))
+}
+
+// Um pedaço lido da rede pode cortar um evento no meio. O que sobra no buffer espera o próximo pedaço.
+async function readEvents(body, onData) {
+  const reader = body.pipeThrough(new TextDecoderStream()).getReader()
+  let buffer = ''
+  while (true) {
+    const { value, done } = await reader.read()
+    if (done) {
+      return
+    }
+    buffer = (buffer + value).replaceAll('\r\n', '\n')
+    let end
+    while ((end = buffer.indexOf('\n\n')) !== -1) {
+      const data = buffer
+        .slice(0, end)
+        .split('\n')
+        .filter((line) => line.startsWith('data:'))
+        .map((line) => line.slice('data:'.length).replace(/^ /, ''))
+        .join('\n')
+      buffer = buffer.slice(end + 2)
+      if (data) {
+        onData(data)
+      }
+    }
+  }
+}
+
 function publish(entry) {
   listeners.forEach((listener) => listener(entry))
 }

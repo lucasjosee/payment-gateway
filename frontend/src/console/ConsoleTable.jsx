@@ -1,30 +1,12 @@
-import { useLayoutEffect, useRef } from 'react'
 import ConsoleRow from './ConsoleRow.jsx'
+import { useFollowScroll } from './useFollowScroll.js'
 import styles from './ConsoleTable.module.css'
 
-// Até esta distância do fim, em pixels, a lista ainda conta como "no fim".
-const FOLLOW_THRESHOLD = 32
-
 function ConsoleTable({ entries, highlightedTag, height, emptyMessage }) {
-  const scrollRef = useRef(null)
-  const followingRef = useRef(true)
-
-  // Se a lista está no fim, ela acompanha as requisições novas. Se a pessoa rolou para cima para ler alguma coisa,
-  // a lista fica onde está. O useLayoutEffect rola antes de o navegador pintar, então a linha nova nunca aparece
-  // escondida por um instante.
-  useLayoutEffect(() => {
-    if (followingRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
-  }, [entries, height])
-
-  function handleScroll() {
-    const list = scrollRef.current
-    followingRef.current = list.scrollHeight - list.scrollTop - list.clientHeight < FOLLOW_THRESHOLD
-  }
+  const { ref, onScroll } = useFollowScroll()
 
   return (
-    <div ref={scrollRef} className={styles.scroll} style={{ height }} onScroll={handleScroll}>
+    <div ref={ref} className={styles.scroll} style={{ height }} onScroll={onScroll}>
       {entries.length === 0 ? (
         <p className={styles.empty}>{emptyMessage}</p>
       ) : (
