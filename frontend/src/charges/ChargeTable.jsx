@@ -1,11 +1,9 @@
 import { Link } from 'react-router'
 import Badge from '../components/Badge.jsx'
 import { chargeStatus, declineReasonText } from './chargeStatus.js'
+import { formatDateTime } from './dateTime.js'
 import { formatCents } from './money.js'
 import styles from './ChargeTable.module.css'
-
-// Com segundos, para dar para conferir a ordem de cobranças criadas em sequência.
-const DATE_FORMAT = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'medium' })
 
 function ChargeTable({ charges }) {
   return (
@@ -34,7 +32,7 @@ function ChargeTable({ charges }) {
                     {charge.id.slice(0, 8)}
                   </Link>
                 </td>
-                <td className={styles.muted}>{DATE_FORMAT.format(new Date(charge.createdAt))}</td>
+                <td className={styles.muted}>{formatDateTime(charge.createdAt)}</td>
                 <td title={charge.declineReason ? declineReasonText(charge.declineReason) : undefined}>
                   <Badge tone={tone}>{label}</Badge>
                 </td>

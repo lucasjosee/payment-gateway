@@ -1,0 +1,65 @@
+.timeline {
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada evento tem uma bolinha na cor do estado em que a cobrança entrou, e uma linha a liga à bolinha seguinte. */
+.event {
+  position: relative;
+  padding: 0 0 var(--space-4) var(--space-5);
+}
+
+.event::before {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  left: 0;
+  width: var(--space-3);
+  height: var(--space-3);
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+.event:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: var(--space-5);
+  bottom: 0;
+  left: calc(var(--space-3) / 2 - 1px);
+  width: 2px;
+  background: var(--color-border);
+}
+
+.event:last-child {
+  padding-bottom: 0;
+}
+
+.title {
+  color: var(--color-text);
+  font-weight: var(--weight-medium);
+}
+
+.time {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.neutral {
+  color: var(--color-neutral-text);
+}
+
+.info {
+  color: var(--color-info-text);
+}
+
+.success {
+  color: var(--color-success-text);
+}
+
+.warning {
+  color: var(--color-warning-text);
+}
+
+.danger {
+  color: var(--color-danger-text);
+}
