@@ -30,7 +30,6 @@
 .nav {
   display: flex;
   align-self: stretch;
-  margin-right: auto;
 }
 
 .navLink {
@@ -61,6 +60,23 @@
   height: var(--space-1);
   border-radius: var(--radius-full) var(--radius-full) 0 0;
   background: var(--color-accent);
+}
+
+/* Fica à direita com ou sem os links de navegação, que só aparecem depois de entrar. */
+.tools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.merchant {
+  overflow: hidden;
+  max-width: 14rem;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /*
@@ -108,9 +124,9 @@
     padding: var(--space-3) var(--space-4) 0;
   }
 
-  /* Com os links na linha de baixo, é o logo que empurra o botão de tema para a direita. */
-  .brand {
-    margin-right: auto;
+  /* No celular não cabe o nome do lojista ao lado do tema e do Sair, e o Sair é o que importa. */
+  .merchant {
+    display: none;
   }
 
   /* No celular, os links descem para uma linha própria e rolam de lado se não couberem. */

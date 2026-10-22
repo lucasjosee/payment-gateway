@@ -1,5 +1,6 @@
+import CopyButton from '../components/CopyButton.jsx'
 import ConsoleMessage from './ConsoleMessage.jsx'
-import CopyCurlButton from './CopyCurlButton.jsx'
+import { toCurl } from './toCurl.js'
 import styles from './ConsoleDetail.module.css'
 
 function responsePlaceholder(entry) {
@@ -16,7 +17,9 @@ function ConsoleDetail({ entry }) {
   return (
     <div className={styles.detail}>
       <div className={styles.toolbar}>
-        <CopyCurlButton entry={entry} />
+        <CopyButton variant="secondary" size="sm" text={toCurl(entry, window.location.origin)}>
+          Copiar como curl
+        </CopyButton>
       </div>
       <div className={styles.messages}>
         <ConsoleMessage title="Envio" headers={entry.requestHeaders} body={entry.requestBody} />

@@ -7,6 +7,7 @@ import LabPage from './pages/LabPage.jsx'
 import NewChargePage from './pages/NewChargePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import WelcomePage from './pages/WelcomePage.jsx'
+import RequireSession from './session/RequireSession.jsx'
 
 function App() {
   // O React Router escolhe a rota mais específica, e não a primeira da lista. Por isso /cobrancas/nova nunca é
@@ -16,10 +17,12 @@ function App() {
       {/* Uma rota sem path só embrulha as outras: o Layout aparece em todas, e o <Outlet> dele mostra a página. */}
       <Route element={<Layout />}>
         <Route path="/" element={<WelcomePage />} />
-        <Route path="/cobrancas" element={<ChargesPage />} />
-        <Route path="/cobrancas/nova" element={<NewChargePage />} />
-        <Route path="/cobrancas/:id" element={<ChargeDetailPage />} />
-        <Route path="/laboratorio" element={<LabPage />} />
+        <Route element={<RequireSession />}>
+          <Route path="/cobrancas" element={<ChargesPage />} />
+          <Route path="/cobrancas/nova" element={<NewChargePage />} />
+          <Route path="/cobrancas/:id" element={<ChargeDetailPage />} />
+          <Route path="/laboratorio" element={<LabPage />} />
+        </Route>
         <Route path="/componentes" element={<ComponentsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>

@@ -1,0 +1,19 @@
+/* Usado pelos dois formulários da tela de boas-vindas, o de criar lojista e o de entrar com uma chave. */
+.description {
+  color: var(--color-text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.submit {
+  align-self: flex-start;
+}
+
+.error {
+  color: var(--color-danger-text);
+  font-size: var(--text-sm);
+}

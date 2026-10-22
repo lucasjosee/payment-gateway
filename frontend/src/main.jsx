@@ -4,15 +4,18 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router'
 import App from './App.jsx'
 import ConsoleProvider from './console/ConsoleProvider.jsx'
+import SessionProvider from './session/SessionProvider.jsx'
 import './styles/tokens.css'
 import './styles/global.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ConsoleProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <SessionProvider>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </SessionProvider>
     </ConsoleProvider>
   </StrictMode>,
 )
