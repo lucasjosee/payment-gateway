@@ -1,10 +1,48 @@
-# Gateway de Pagamento
+# Ponte
 
-API REST de um gateway de pagamento simplificado, feita como projeto de portfólio. Um lojista se cadastra, recebe uma API key e com ela cria cobranças de cartão, que passam por um antifraude e depois podem ser capturadas, canceladas ou estornadas.
+Gateway de pagamento simplificado, feito como projeto de portfólio: uma API REST e uma interface web que mostra, embaixo de cada tela, as requisições feitas à API e os logs do servidor ao vivo. Um lojista se cadastra, recebe uma API key e com ela cria cobranças de cartão, que passam por um antifraude e depois podem ser capturadas, canceladas ou estornadas.
 
 Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem das regras de antifraude da própria API. O foco está no que um gateway real precisa garantir: não cobrar duas vezes o mesmo pedido, não deixar duas operações simultâneas corromperem uma cobrança e não guardar dados sensíveis do cartão.
 
-**Stack:** Java 21, Spring Boot 4, Spring Security, Spring Data JPA, PostgreSQL 17, Flyway, springdoc-openapi, Testcontainers e Docker.
+**Backend:** Java 21, Spring Boot 4, Spring Security, Spring Data JPA, PostgreSQL 17, Flyway, springdoc-openapi, Testcontainers e Docker.
+
+**Front-end:** React 19 com Vite, em JavaScript, React Router e CSS Modules. Sem biblioteca de componentes: os componentes base e os tokens de cor, espaçamento e tipografia são do próprio projeto.
+
+![Lista de cobranças com o console de requisições](docs/capturas/cobrancas.png)
+
+## Telas
+
+**Nova cobrança.** Os botões de cartão de teste preenchem o cartão e a moeda para três resultados: aprovado, recusado pelo final `0002` e recusado por ser em dólar. No console, o detalhe do pedido mostra a `Idempotency-Key` gerada pelo front, e a API key e o cartão aparecem mascarados.
+
+![Nova cobrança com o detalhe do pedido aberto no console](docs/capturas/nova-cobranca.png)
+
+**Detalhe da cobrança.** A linha do tempo mostra cada mudança de estado. Os botões só ficam habilitados nas transições válidas, mas o modo demonstração libera todos para mostrar a API recusando uma transição inválida com `409`.
+
+![Detalhe de uma cobrança estornada, com o 409 de uma captura inválida](docs/capturas/detalhe.png)
+
+**Laboratório de garantias.** Dois experimentos que põem as garantias da API à prova pelo navegador. Na concorrência, 20 capturas da mesma cobrança saem ao mesmo tempo: uma passa e 19 recebem `409`, umas barradas pelo lock otimista e outras pela máquina de estados.
+
+![Experimento de concorrência com o placar de 1 sucesso e 19 conflitos](docs/capturas/laboratorio.png)
+
+**Logs do servidor.** A aba Servidor do console recebe ao vivo os logs dos pedidos do lojista. Clicar em "Ver logs do servidor" numa requisição filtra as linhas pelo request ID dela: a chave de idempotência reservada, o antifraude decidindo e o SQL executado.
+
+![Aba Servidor no tema escuro, com os logs de uma cobrança recusada](docs/capturas/logs-servidor.png)
+
+## Arquitetura alvo
+
+O deploy na AWS está em andamento. Esta é a arquitetura que ele vai ter:
+
+```mermaid
+flowchart LR
+    browser([Navegador]) -->|HTTPS| cloudfront[CloudFront]
+    cloudfront -->|"/*"| s3[("S3<br/>build do React, privado")]
+    cloudfront -->|"/api/*"| ec2["EC2 :8080<br/>Spring Boot"]
+    ec2 --> rds[("RDS<br/>PostgreSQL")]
+```
+
+- Front e API ficam no mesmo domínio, o do CloudFront. Por isso não há CORS nem mistura de HTTP com HTTPS, e todas as rotas da API ficam sob `/api` para o CloudFront saber para onde mandar cada pedido.
+- Em desenvolvimento, o Vite faz o mesmo papel: serve o front e repassa o que começa com `/api` para `localhost:8080`.
+- A EC2 só aceita tráfego vindo do CloudFront, e o RDS só aceita conexões vindas da EC2.
 
 ## Endpoints
 
@@ -53,15 +91,39 @@ stateDiagram-v2
 
 ## Como rodar
 
-Com Docker, um comando sobe o banco e a API:
+### Interface e API
+
+Precisa do Docker, do Java 21 e do Node.js 22 (ou 20.19 em diante). São três terminais: o banco, a API e o front.
+
+```bash
+# 1. Banco
+docker compose up -d db
+
+# 2. API, com o profile demo para a aba Servidor do console funcionar
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+
+# 3. Front
+cd frontend
+npm install
+npm run dev
+```
+
+A interface abre em `http://localhost:5173`. Para conferir o build de produção, use `npm run build` e depois `npm run preview`, que abre em `http://localhost:4173` com o mesmo repasse de `/api`.
+
+Para apresentar o projeto pela interface, há um [roteiro de demo de 5 minutos](docs/roteiro-demo.md).
+
+### Só a API, com Docker
+
+Um comando sobe o banco e a API:
 
 ```bash
 docker compose up --build
 ```
 
-A API fica em `http://localhost:8080/api` e o Swagger em `http://localhost:8080/api/swagger-ui.html`.
+A API fica em `http://localhost:8080/api` e o Swagger em `http://localhost:8080/api/swagger-ui.html`. O front também funciona com ela, mas sem o profile `demo` a aba Servidor do console fica indisponível.
 
-### Demo
+### Demo pelo terminal
 
 Com a API no ar, o script abaixo percorre o fluxo principal com `curl`: cadastro, cobrança aprovada, repetição idempotente, cobrança recusada, captura, estorno e isolamento entre lojistas. Ele confere a resposta de cada passo e para no primeiro que não sair como esperado.
 
@@ -73,25 +135,17 @@ Com a API no ar, o script abaixo percorre o fluxo principal com `curl`: cadastro
 
 Com o profile `demo`, a API guarda em memória as últimas 200 linhas de log de cada lojista e as transmite ao vivo, junto com o SQL que cada pedido executou, com `?` no lugar dos valores. Dá para ver a idempotência reservando a chave, o antifraude decidindo e o lock otimista barrando uma captura simultânea. Cada lojista recebe só as linhas dos próprios pedidos.
 
-```bash
-cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=demo
+A aba Servidor do console mostra esse stream. Pelo terminal, também dá para acompanhar:
 
-# em outro terminal, com a chave de um lojista
+```bash
 curl -N http://localhost:8080/api/dev/logs -H "X-Api-Key: <chave>"
 ```
 
-### Desenvolvimento
+### Testes e verificações
 
-Para rodar a aplicação fora do Docker, suba só o banco e use o Maven Wrapper, que já vem no projeto (precisa do Java 21):
+Os testes do backend rodam com `./mvnw test`, de dentro de `backend/`. Os testes de idempotência e de concorrência sobem um PostgreSQL próprio com Testcontainers e só precisam do Docker rodando. O teste que apenas confere se a aplicação inicia ainda usa o banco do `docker compose`, então ele precisa estar de pé.
 
-```bash
-docker compose up -d db
-cd backend
-./mvnw spring-boot:run
-```
-
-Os testes rodam com `./mvnw test`, de dentro de `backend/`. Os testes de idempotência e de concorrência sobem um PostgreSQL próprio com Testcontainers e só precisam do Docker rodando. O teste que apenas confere se a aplicação inicia ainda usa o banco do `docker compose`, então ele precisa estar de pé.
+No front, `npm run lint` roda o ESLint e `npm run build` gera o build de produção em `frontend/dist`.
 
 ### Variáveis de ambiente
 
@@ -119,8 +173,7 @@ Todas têm valores padrão que só servem para rodar localmente. Em qualquer out
 
 ## Próximos passos
 
-- **Deploy na AWS:** a API numa EC2 e o banco num RDS PostgreSQL, com Security Groups que só deixam a EC2 falar com o banco, e scripts para ligar e desligar tudo e não pagar pelo tempo parado.
-- **HTTPS** na frente da API.
+- **Deploy na AWS**, seguindo a [arquitetura alvo](#arquitetura-alvo), com o HTTPS do CloudFront e scripts para ligar e desligar tudo e não pagar pelo tempo parado.
 - **Limpeza periódica** das chaves de idempotência expiradas, que hoje só são reaproveitadas quando a mesma chave volta.
 - **Webhooks** para avisar o lojista quando uma cobrança muda de estado.
 - **Captura e estorno parciais**, que hoje sempre usam o valor inteiro da cobrança.
