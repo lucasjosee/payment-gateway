@@ -4,9 +4,11 @@
   gap: var(--space-3);
 }
 
+/* Os botões herdam a fonte de quem os contém, e a tabela do console é toda em fonte mono. */
 .toolbar {
   display: flex;
   justify-content: flex-end;
+  font-family: var(--font-sans);
 }
 
 /* Envio e resposta lado a lado. A tabela do console nunca fica mais estreita que 48rem, então as duas colunas cabem. */
