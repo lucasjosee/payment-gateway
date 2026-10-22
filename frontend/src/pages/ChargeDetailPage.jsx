@@ -7,23 +7,31 @@ import { formatCents } from '../charges/money.js'
 import { useCharge } from '../charges/useCharge.js'
 import Badge from '../components/Badge.jsx'
 import Card from '../components/Card.jsx'
+import LoadError from '../components/LoadError.jsx'
 import styles from './ChargeDetailPage.module.css'
 
 function ChargeDetailPage() {
   const { id } = useParams()
-  const { charge, error, loading, update } = useCharge(id)
+  const { charge, error, loading, update, reload } = useCharge(id)
 
   function renderContent() {
     if (loading) {
       return <p className={styles.muted}>Carregando a cobrança…</p>
     }
-    // Uma cobrança de outro lojista também dá 404: a API não conta nem que ela existe.
-    if (error) {
+    // Um id que nem tem formato de UUID dá 400, e para quem chegou por um link quebrado é o mesmo que não existir.
+    // Nos dois casos, tentar de novo não muda nada, então a página explica em vez de oferecer o botão.
+    if (error?.status === 404 || error?.status === 400) {
       return (
-        <p role="alert" className={styles.error}>
-          {error.message}
-        </p>
+        <Card title="Cobrança não encontrada">
+          <p className={styles.muted}>
+            Ela não existe ou é de outro lojista. A API responde do mesmo jeito nos dois casos, para não revelar nem
+            que a cobrança de outra loja existe.
+          </p>
+        </Card>
       )
+    }
+    if (error) {
+      return <LoadError message="Não deu para carregar a cobrança." error={error} onRetry={reload} />
     }
 
     const { label, tone } = chargeStatus(charge.status)

@@ -3,6 +3,7 @@ import ChargeTable from '../charges/ChargeTable.jsx'
 import { useChargePage } from '../charges/useChargePage.js'
 import Button from '../components/Button.jsx'
 import Card from '../components/Card.jsx'
+import LoadError from '../components/LoadError.jsx'
 import Pagination from '../components/Pagination.jsx'
 import styles from './ChargesPage.module.css'
 
@@ -27,14 +28,7 @@ function ChargesPage() {
       if (loading) {
         return <p className={styles.muted}>Carregando cobranças…</p>
       }
-      return (
-        <div role="alert" className={styles.error}>
-          <p>Não deu para carregar as cobranças. {error.message}</p>
-          <Button variant="secondary" size="sm" onClick={reload}>
-            Tentar de novo
-          </Button>
-        </div>
-      )
+      return <LoadError message="Não deu para carregar as cobranças." error={error} onRetry={reload} />
     }
 
     if (data.totalItems === 0) {
@@ -43,6 +37,21 @@ function ChargesPage() {
           <p className={styles.muted}>Nenhuma cobrança ainda.</p>
           <p>
             <Link to="/cobrancas/nova">Criar a primeira cobrança</Link>
+          </p>
+        </Card>
+      )
+    }
+
+    // Acontece quando alguém edita o número da página na URL. A API responde 200 com a lista vazia.
+    if (data.items.length === 0) {
+      return (
+        <Card>
+          <p className={styles.muted}>
+            A página {page + 1} não existe. As suas cobranças cabem em {data.totalPages}{' '}
+            {data.totalPages === 1 ? 'página' : 'páginas'}.
+          </p>
+          <p>
+            <Link to="/cobrancas">Ir para a primeira página</Link>
           </p>
         </Card>
       )

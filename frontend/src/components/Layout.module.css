@@ -149,3 +149,10 @@
     padding: var(--space-4);
   }
 }
+
+/* Em notebooks de tela baixa, cabeçalho e console já tomam boa parte da altura, então a folga da página diminui. */
+@media (max-height: 50rem) {
+  .main {
+    padding-block: var(--space-5);
+  }
+}

@@ -31,10 +31,6 @@
   color: var(--color-text-muted);
 }
 
-.error {
-  color: var(--color-danger-text);
-}
-
 @media (max-width: 48rem) {
   .layout {
     grid-template-columns: minmax(0, 1fr);

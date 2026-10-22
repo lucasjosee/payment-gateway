@@ -10,10 +10,22 @@ const VISIBLE_KEY_LENGTH = 12
 let apiKey = null
 const listeners = new Set()
 
+// Com a API desligada, quem responde 502, 503 ou 504 é o que fica no meio do caminho: o proxy do Vite em
+// desenvolvimento, o CloudFront na AWS.
+function fallbackMessage(status) {
+  if (status === 0) {
+    return 'A API não respondeu.'
+  }
+  if (status >= 502 && status <= 504) {
+    return `A API parece estar fora do ar (status ${status}).`
+  }
+  return `A API respondeu com o status ${status}.`
+}
+
 export class ApiError extends Error {
   // status 0 quer dizer que a API nem respondeu. Nos outros casos, problem é o Problem Details que ela devolveu.
   constructor(status, problem, requestId) {
-    super(problem?.detail ?? (status === 0 ? 'A API não respondeu.' : `A API respondeu com o status ${status}.`))
+    super(problem?.detail ?? fallbackMessage(status))
     this.name = 'ApiError'
     this.status = status
     this.problem = problem
