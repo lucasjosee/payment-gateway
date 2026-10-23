@@ -2,7 +2,6 @@ import { Route, Routes } from 'react-router'
 import Layout from './components/Layout.jsx'
 import ChargeDetailPage from './pages/ChargeDetailPage.jsx'
 import ChargesPage from './pages/ChargesPage.jsx'
-import ComponentsPage from './pages/ComponentsPage.jsx'
 import LabPage from './pages/LabPage.jsx'
 import NewChargePage from './pages/NewChargePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
@@ -23,7 +22,6 @@ function App() {
           <Route path="/cobrancas/:id" element={<ChargeDetailPage />} />
           <Route path="/laboratorio" element={<LabPage />} />
         </Route>
-        <Route path="/componentes" element={<ComponentsPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>

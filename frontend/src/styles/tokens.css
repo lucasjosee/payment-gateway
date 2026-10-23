@@ -3,8 +3,7 @@
 
   Cada cor é declarada uma vez, com light-dark(cor do tema claro, cor do tema escuro). O navegador escolhe o lado
   pelo color-scheme do elemento onde a cor é usada: no :root ele segue o sistema operacional, e o data-theme força
-  um dos dois. Como o data-theme vale para qualquer elemento, um pedaço da página pode ficar num tema diferente do
-  resto, como faz a página de componentes.
+  um dos dois.
 
   Os contrastes de texto passam no WCAG AA (4,5:1). Bordas de campo e o anel de foco passam no mínimo de 3:1.
 */

@@ -67,10 +67,7 @@ function Layout() {
 
         <footer className={styles.footer}>
           <p>Projeto de estudo, sem vínculo com instituições financeiras.</p>
-          <div className={styles.footerLinks}>
-            <ApiStatus />
-            <Link to="/componentes">Componentes</Link>
-          </div>
+          <ApiStatus />
         </footer>
       </div>
 

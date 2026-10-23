@@ -111,12 +111,6 @@
   font-size: var(--text-sm);
 }
 
-.footerLinks {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
 @media (max-width: 48rem) {
   .header {
     flex-wrap: wrap;
