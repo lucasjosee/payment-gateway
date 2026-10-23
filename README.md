@@ -8,25 +8,14 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 
 **Front-end:** React 19 com Vite, em JavaScript, React Router e CSS Modules. Sem biblioteca de componentes: os componentes base e os tokens de cor, espaçamento e tipografia são do próprio projeto.
 
-![Lista de cobranças com o console de requisições](docs/capturas/cobrancas.png)
+## O que dá para fazer
 
-## Telas
-
-**Nova cobrança.** Os botões de cartão de teste preenchem o cartão e a moeda para três resultados: aprovado, recusado pelo final `0002` e recusado por ser em dólar. No console, o detalhe do pedido mostra a `Idempotency-Key` gerada pelo front, e a API key e o cartão aparecem mascarados.
-
-![Nova cobrança com o detalhe do pedido aberto no console](docs/capturas/nova-cobranca.png)
-
-**Detalhe da cobrança.** A linha do tempo mostra cada mudança de estado. Os botões só ficam habilitados nas transições válidas, mas o modo demonstração libera todos para mostrar a API recusando uma transição inválida com `409`.
-
-![Detalhe de uma cobrança estornada, com o 409 de uma captura inválida](docs/capturas/detalhe.png)
-
-**Laboratório de garantias.** Dois experimentos que põem as garantias da API à prova pelo navegador. Na concorrência, 20 capturas da mesma cobrança saem ao mesmo tempo: uma passa e 19 recebem `409`, umas barradas pelo lock otimista e outras pela máquina de estados.
-
-![Experimento de concorrência com o placar de 1 sucesso e 19 conflitos](docs/capturas/laboratorio.png)
-
-**Logs do servidor.** A aba Servidor do console recebe ao vivo os logs dos pedidos do lojista. Clicar em "Ver logs do servidor" numa requisição filtra as linhas pelo request ID dela: a chave de idempotência reservada, o antifraude decidindo e o SQL executado.
-
-![Aba Servidor no tema escuro, com os logs de uma cobrança recusada](docs/capturas/logs-servidor.png)
+- Criar um lojista de teste e receber a API key, que aparece uma única vez, ou entrar com a chave de um lojista já criado.
+- Criar cobranças de cartão, com cartões de teste que levam à aprovação ou à recusa pelo antifraude.
+- Listar as cobranças e abrir o detalhe de cada uma, com a linha do tempo dos estados.
+- Capturar, cancelar ou estornar uma cobrança. O modo demonstração libera as ações inválidas para mostrar a API respondendo `409`.
+- No Laboratório, repetir um pedido para ver a idempotência e disparar capturas simultâneas para ver só uma passar.
+- No console, embaixo de cada tela, acompanhar as requisições à API e os logs do servidor ao vivo, e copiar qualquer requisição como `curl`.
 
 ## Arquitetura alvo
 
@@ -60,7 +49,7 @@ flowchart LR
 
 A autenticação é pelo header `X-Api-Key`. A documentação interativa fica em `/api/swagger-ui.html`, com o botão *Authorize* para informar a chave.
 
-Toda resposta traz o header `X-Request-Id`, e o mesmo valor aparece nas linhas de log daquele pedido, junto com o id do lojista. Se o pedido já chegar com esse header, a API reaproveita o valor, desde que tenha até 64 caracteres entre letras, dígitos, `-`, `.` e `_`. Fora disso, ela gera um novo.
+Toda resposta traz o header `X-Request-Id`, com o mesmo valor que aparece nos logs daquele pedido.
 
 ## Diagramas
 
@@ -133,9 +122,7 @@ Com a API no ar, o script abaixo percorre o fluxo principal com `curl`: cadastro
 
 ### Logs ao vivo (profile `demo`)
 
-Com o profile `demo`, a API guarda em memória as últimas 200 linhas de log de cada lojista e as transmite ao vivo, junto com o SQL que cada pedido executou, com `?` no lugar dos valores. Dá para ver a idempotência reservando a chave, o antifraude decidindo e o lock otimista barrando uma captura simultânea. Cada lojista recebe só as linhas dos próprios pedidos.
-
-A aba Servidor do console mostra esse stream. Pelo terminal, também dá para acompanhar:
+Com o profile `demo`, a API transmite ao vivo os logs e o SQL dos pedidos de cada lojista. A aba Servidor do console mostra esse stream, e pelo terminal também dá para acompanhar:
 
 ```bash
 curl -N http://localhost:8080/api/dev/logs -H "X-Api-Key: <chave>"
@@ -143,9 +130,7 @@ curl -N http://localhost:8080/api/dev/logs -H "X-Api-Key: <chave>"
 
 ### Testes e verificações
 
-Os testes do backend rodam com `./mvnw test`, de dentro de `backend/`. Os testes de idempotência e de concorrência sobem um PostgreSQL próprio com Testcontainers e só precisam do Docker rodando. O teste que apenas confere se a aplicação inicia ainda usa o banco do `docker compose`, então ele precisa estar de pé.
-
-No front, `npm run lint` roda o ESLint e `npm run build` gera o build de produção em `frontend/dist`.
+Os testes do backend rodam com `./mvnw test`, de dentro de `backend/`, e precisam do Docker rodando, com o banco do `docker compose` de pé. No front, `npm run lint` roda o ESLint.
 
 ### Variáveis de ambiente
 
