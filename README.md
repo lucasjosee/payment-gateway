@@ -1,5 +1,7 @@
 # Ponte
 
+**Site:** https://d7wo0l0c3utlh.cloudfront.net
+
 Gateway de pagamento simplificado, feito como projeto de portfólio: uma API REST e uma interface web que mostra, embaixo de cada tela, as requisições feitas à API e os logs do servidor ao vivo. Um lojista se cadastra, recebe uma API key e com ela cria cobranças de cartão, que passam por um antifraude e depois podem ser capturadas, canceladas ou estornadas.
 
 Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem das regras de antifraude da própria API. O foco está no que um gateway real precisa garantir: não cobrar duas vezes o mesmo pedido, não deixar duas operações simultâneas corromperem uma cobrança e não guardar dados sensíveis do cartão.
@@ -172,10 +174,3 @@ Os recursos foram criados pelo console, e o dia a dia fica com os scripts de `in
 - **Erros no formato Problem Details (RFC 9457).** Todo erro tem a mesma estrutura, inclusive os de validação, que listam os campos inválidos.
 - **Schema versionado com Flyway.** As migrations criam e alteram as tabelas. O Hibernate só valida se as entidades batem com o banco e impede a aplicação de subir se não baterem.
 
-## Próximos passos
-
-- **Origem mais fechada na AWS.** O trecho entre o CloudFront e a EC2 é HTTP, e a prefix list aceita qualquer distribuição do CloudFront, não só a deste projeto. HTTPS nesse trecho e um header secreto conferido pela API fechariam os dois pontos.
-- **Limpeza periódica** das chaves de idempotência expiradas, que hoje só são reaproveitadas quando a mesma chave volta.
-- **Webhooks** para avisar o lojista quando uma cobrança muda de estado.
-- **Captura e estorno parciais**, que hoje sempre usam o valor inteiro da cobrança.
-- **Limite de requisições** por API key.
