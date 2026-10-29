@@ -54,7 +54,7 @@ Na tela de boas-vindas:
 
 > O request ID amarra tudo. É o mesmo na linha do console, na mensagem de erro da tela e nos logs do servidor. Se um lojista reclama de um erro, esse ID leva direto às linhas daquele pedido.
 
-Para terminar, mostre a [arquitetura alvo](../README.md#arquitetura-alvo) no README: o front no S3, a API numa EC2 e o banco num RDS, tudo atrás do CloudFront, no mesmo domínio.
+Para terminar, mostre a [arquitetura na AWS](../README.md#arquitetura-na-aws) no README: o front no S3, a API numa EC2 e o banco num RDS, tudo atrás do CloudFront, no mesmo domínio.
 
 ## Se algo der errado
 

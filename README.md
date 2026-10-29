@@ -8,6 +8,8 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 
 **Front-end:** React 19 com Vite, em JavaScript, React Router e CSS Modules. Sem biblioteca de componentes: os componentes base e os tokens de cor, espaçamento e tipografia são do próprio projeto.
 
+**Infra:** AWS (CloudFront, S3, EC2, RDS e IAM Identity Center), com scripts em Bash e a AWS CLI.
+
 ## O que dá para fazer
 
 - Criar um lojista de teste e receber a API key, que aparece uma única vez, ou entrar com a chave de um lojista já criado.
@@ -17,21 +19,22 @@ Não há banco emissor nem adquirente de verdade: a aprovação ou a recusa vem 
 - No Laboratório, repetir um pedido para ver a idempotência e disparar capturas simultâneas para ver só uma passar.
 - No console, embaixo de cada tela, acompanhar as requisições à API e os logs do servidor ao vivo, e copiar qualquer requisição como `curl`.
 
-## Arquitetura alvo
-
-O deploy na AWS está em andamento. Esta é a arquitetura que ele vai ter:
+## Arquitetura na AWS
 
 ```mermaid
 flowchart LR
     browser([Navegador]) -->|HTTPS| cloudfront[CloudFront]
     cloudfront -->|"/*"| s3[("S3<br/>build do React, privado")]
-    cloudfront -->|"/api/*"| ec2["EC2 :8080<br/>Spring Boot"]
-    ec2 --> rds[("RDS<br/>PostgreSQL")]
+    cloudfront -->|"/api/*"| ec2["EC2 :8080<br/>Spring Boot em Docker"]
+    ec2 --> rds[("RDS<br/>PostgreSQL 17")]
 ```
 
 - Front e API ficam no mesmo domínio, o do CloudFront. Por isso não há CORS nem mistura de HTTP com HTTPS, e todas as rotas da API ficam sob `/api` para o CloudFront saber para onde mandar cada pedido.
 - Em desenvolvimento, o Vite faz o mesmo papel: serve o front e repassa o que começa com `/api` para `localhost:8080`.
-- A EC2 só aceita tráfego vindo do CloudFront, e o RDS só aceita conexões vindas da EC2.
+- O bucket é privado: só o CloudFront lê os arquivos, por Origin Access Control. As rotas do React, como `/cobrancas/123`, não existem como arquivo, e uma CloudFront Function as troca pelo `index.html`. Páginas de erro personalizadas fariam o mesmo, mas valeriam também para a API e transformariam os `404` dela em HTML.
+- O caminho `/api/*` não tem cache e repassa todos os headers do navegador, como `X-Api-Key` e `Idempotency-Key`.
+- A EC2 só aceita tráfego vindo do CloudFront, pela prefix list que a AWS mantém com os IPs dele, e o RDS só aceita conexões vindas da EC2. Não há porta 22: o acesso à máquina é pelo Session Manager, e ela usa uma role IAM em vez de chaves de acesso.
+- Fora das demos, a EC2 e o RDS ficam desligados para não gastar.
 
 ## Endpoints
 
@@ -142,6 +145,19 @@ Os testes do backend rodam com `./mvnw test`, de dentro de `backend/`, e precisa
 
 Todas têm valores padrão que só servem para rodar localmente. Em qualquer outro ambiente, precisam ser definidas.
 
+### Deploy na AWS
+
+Os recursos foram criados pelo console, e o dia a dia fica com os scripts de `infra/`, que guardam os IDs da conta em variáveis no início de cada arquivo. Os que rodam localmente usam a AWS CLI logada pelo IAM Identity Center (`aws sso login`).
+
+| Arquivo | Onde roda | O que faz |
+|---|---|---|
+| `user-data.sh` | EC2, no primeiro boot | Instala Docker e Git, cria swap para o build caber na memória e clona o repositório |
+| `subir-api.sh` | EC2, pelo Session Manager | Atualiza o código, gera a imagem e troca o container da API. Pede a senha do banco na hora, para ela não ficar em arquivo |
+| `deploy-front.sh` | Local | Faz o build do front, envia para o S3 e invalida o cache do CloudFront |
+| `ligar.sh` | Local | Liga o RDS, depois a EC2, e espera a API responder pelo CloudFront |
+| `desligar.sh` | Local | Para a EC2 e o RDS |
+| `spa-routes.js` | CloudFront | Function que manda as rotas do React para o `index.html` |
+
 ## Decisões
 
 - **Dinheiro em centavos.** Valores são `long` no Java e `bigint` no banco. Com `double`, R$ 0,10 + R$ 0,20 não daria exatamente R$ 0,30.
@@ -158,7 +174,7 @@ Todas têm valores padrão que só servem para rodar localmente. Em qualquer out
 
 ## Próximos passos
 
-- **Deploy na AWS**, seguindo a [arquitetura alvo](#arquitetura-alvo), com o HTTPS do CloudFront e scripts para ligar e desligar tudo e não pagar pelo tempo parado.
+- **Origem mais fechada na AWS.** O trecho entre o CloudFront e a EC2 é HTTP, e a prefix list aceita qualquer distribuição do CloudFront, não só a deste projeto. HTTPS nesse trecho e um header secreto conferido pela API fechariam os dois pontos.
 - **Limpeza periódica** das chaves de idempotência expiradas, que hoje só são reaproveitadas quando a mesma chave volta.
 - **Webhooks** para avisar o lojista quando uma cobrança muda de estado.
 - **Captura e estorno parciais**, que hoje sempre usam o valor inteiro da cobrança.
