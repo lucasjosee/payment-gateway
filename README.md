@@ -2,7 +2,7 @@
 
 **Site:** https://d7wo0l0c3utlh.cloudfront.net
 
-Gateway de pagamento simplificado, feito como projeto de portfólio. Um lojista se cadastra, recebe uma API key e cria cobranças de cartão, que passam por um antifraude e depois podem ser capturadas, canceladas ou estornadas. Não há banco nem adquirente de verdade: o foco está no que um gateway precisa garantir, como não cobrar duas vezes o mesmo pedido, não deixar operações simultâneas corromperem uma cobrança e não guardar dados sensíveis do cartão.
+Gateway de pagamento simplificado. Um lojista se cadastra, recebe uma API key e cria cobranças de cartão, que passam por um antifraude e depois podem ser capturadas, canceladas ou estornadas. Não há banco nem adquirente de verdade: o foco está no que um gateway precisa garantir, como não cobrar duas vezes o mesmo pedido, não deixar operações simultâneas corromperem uma cobrança e não guardar dados sensíveis do cartão.
 
 Embaixo de cada tela, um console mostra as requisições feitas à API e os logs do servidor ao vivo. No Laboratório dá para ver a idempotência e as capturas simultâneas acontecendo.
 
