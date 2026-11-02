@@ -9,9 +9,12 @@ import java.util.UUID;
 public class WebhookEndpointService {
 
 	private final WebhookEndpointRepository webhookEndpointRepository;
+	private final WebhookSigningSecrets signingSecrets;
 
-	public WebhookEndpointService(WebhookEndpointRepository webhookEndpointRepository) {
+	public WebhookEndpointService(WebhookEndpointRepository webhookEndpointRepository,
+			WebhookSigningSecrets signingSecrets) {
 		this.webhookEndpointRepository = webhookEndpointRepository;
+		this.signingSecrets = signingSecrets;
 	}
 
 	// Trocar a URL altera a linha que já existe em vez de criar outra, então o endpoint mantém o mesmo id.
@@ -34,6 +37,6 @@ public class WebhookEndpointService {
 	}
 
 	private WebhookEndpointResponse toResponse(WebhookEndpoint endpoint) {
-		return new WebhookEndpointResponse(endpoint.getUrl());
+		return new WebhookEndpointResponse(endpoint.getUrl(), signingSecrets.secretFor(endpoint.getId()));
 	}
 }

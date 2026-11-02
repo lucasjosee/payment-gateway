@@ -50,6 +50,9 @@ gateway:
   # precisa estar definida. Trocá-la tem pouco efeito: por até 24 horas, repetir um pedido antigo dá 422 em vez de
   # devolver a resposta guardada.
   idempotency-hash-key: ${IDEMPOTENCY_HASH_KEY:dev-only-idempotency-hash-key}
+  # Chave do HMAC que gera o segredo de assinatura de cada webhook. Fora daqui ela precisa estar definida, porque quem
+  # a conhece calcula o segredo de qualquer lojista. Trocá-la muda o segredo de todos os lojistas de uma vez.
+  webhook-signing-key: ${WEBHOOK_SIGNING_KEY:dev-only-webhook-signing-key}
 
 springdoc:
   # O Swagger fica ligado de propósito em todo ambiente, inclusive na EC2, porque é a vitrine do projeto.
