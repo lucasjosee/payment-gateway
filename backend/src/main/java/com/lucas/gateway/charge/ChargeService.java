@@ -5,6 +5,7 @@ import com.lucas.gateway.charge.fraud.FraudDecision;
 import com.lucas.gateway.charge.fraud.FraudService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -21,12 +22,14 @@ public class ChargeService {
 	private final ChargeRepository chargeRepository;
 	private final FraudService fraudService;
 	private final CardFingerprinter cardFingerprinter;
+	private final ApplicationEventPublisher eventPublisher;
 
 	public ChargeService(ChargeRepository chargeRepository, FraudService fraudService,
-			CardFingerprinter cardFingerprinter) {
+			CardFingerprinter cardFingerprinter, ApplicationEventPublisher eventPublisher) {
 		this.chargeRepository = chargeRepository;
 		this.fraudService = fraudService;
 		this.cardFingerprinter = cardFingerprinter;
+		this.eventPublisher = eventPublisher;
 	}
 
 	@Transactional
@@ -52,7 +55,7 @@ public class ChargeService {
 			log.info("Antifraude recusou pelo motivo {}: a cobrança {} nasce DECLINED", decision.declineReason(),
 					saved.getId());
 		}
-		return toResponse(saved);
+		return publishStatusChange(saved);
 	}
 
 	@Transactional(readOnly = true)
@@ -93,7 +96,13 @@ public class ChargeService {
 		// A mensagem diz "aceitou", e não "gravou", porque o UPDATE só acontece no fim da transação, e é lá que o
 		// lock otimista ainda pode desfazer tudo se outro pedido tiver alterado a cobrança antes.
 		log.info("Máquina de estados aceitou {} -> {} na cobrança {}", previous, next, chargeId);
-		return toResponse(charge);
+		return publishStatusChange(charge);
+	}
+
+	private ChargeResponse publishStatusChange(Charge charge) {
+		ChargeResponse response = toResponse(charge);
+		eventPublisher.publishEvent(new ChargeStatusChanged(charge.getMerchantId(), response));
+		return response;
 	}
 
 	// Toda rota que recebe o id de uma cobrança busca por aqui, para nenhuma delas esquecer de conferir o dono.
