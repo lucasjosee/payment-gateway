@@ -5,6 +5,7 @@
 # Uso, dentro da EC2 pelo Session Manager: sudo /opt/payment-gateway/infra/subir-api.sh
 set -euo pipefail
 
+AWS_REGION=sa-east-1
 DB_ENDPOINT=gateway-db.cb2y6qcm0cak.sa-east-1.rds.amazonaws.com
 DB_USERNAME=gateway
 CONTAINER=gateway-api
@@ -19,15 +20,22 @@ fi
 REPO_DIR=$(cd "$(dirname "$0")/.." && pwd)
 git -C "$REPO_DIR" pull --ff-only
 
-# A senha é pedida a cada execução para nunca ficar no repositório nem no histórico do shell.
-read -rsp "Senha do banco ($DB_USERNAME): " DB_PASSWORD
-echo
-export DB_PASSWORD
+# Os segredos vêm do Parameter Store pela role da EC2. Eles são lidos antes de mexer no container, então uma falha
+# aqui para o script com a API antiga ainda no ar.
+read_secret() {
+	aws ssm get-parameter --region "$AWS_REGION" --name "$1" --with-decryption --query Parameter.Value --output text
+}
+
+# Atribuição e export ficam separados porque "export VAR=$(...)" esconde do set -e a falha do comando.
+DB_PASSWORD=$(read_secret /ponte/db-password)
+CARD_FINGERPRINT_KEY=$(read_secret /ponte/card-fingerprint-key)
+IDEMPOTENCY_HASH_KEY=$(read_secret /ponte/idempotency-hash-key)
+export DB_PASSWORD CARD_FINGERPRINT_KEY IDEMPOTENCY_HASH_KEY
 
 docker build -t "$CONTAINER" "$REPO_DIR/backend"
 
 docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-# O -e DB_PASSWORD sem valor copia a variável do ambiente, assim a senha não aparece na linha de comando do processo.
+# O -e sem valor copia a variável do ambiente, assim os segredos não aparecem na linha de comando do processo.
 # O Docker guarda as variáveis junto com o container, e é isso que permite o --restart subir a API sozinha
 # quando a EC2 for religada.
 docker run -d \
@@ -37,6 +45,8 @@ docker run -d \
 	-e DB_URL="jdbc:postgresql://$DB_ENDPOINT:5432/gateway" \
 	-e DB_USERNAME="$DB_USERNAME" \
 	-e DB_PASSWORD \
+	-e CARD_FINGERPRINT_KEY \
+	-e IDEMPOTENCY_HASH_KEY \
 	-e SPRING_PROFILES_ACTIVE=demo \
 	"$CONTAINER"
 
