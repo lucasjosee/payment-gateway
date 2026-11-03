@@ -1,5 +1,6 @@
 package com.lucas.gateway.webhook;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -8,6 +9,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -21,7 +23,10 @@ class WebhookUrlValidatorTest {
 			"metadados.example", List.of("169.254.169.254"),
 			"meio-interno.example", List.of("93.184.215.14", "10.0.0.5"));
 
-	private final WebhookUrlValidator validator = new WebhookUrlValidator(WebhookUrlValidatorTest::resolve);
+	private static final String TEST_RECEIVER = "http://localhost:8080/api/dev/webhook-receiver";
+
+	private final WebhookUrlValidator validator =
+			new WebhookUrlValidator(WebhookUrlValidatorTest::resolve, TEST_RECEIVER);
 
 	@ParameterizedTest
 	@ValueSource(strings = {
@@ -75,6 +80,25 @@ class WebhookUrlValidatorTest {
 		assertThatThrownBy(() -> validator.validate(url))
 				.isInstanceOf(InvalidWebhookUrlException.class)
 				.hasMessageContaining(reason);
+	}
+
+	@Test
+	void exemptsOnlyTheMerchantsOwnTestReceiver() {
+		UUID merchantId = UUID.randomUUID();
+		assertThatCode(() -> validator.validate(merchantId, TEST_RECEIVER + "/" + merchantId))
+				.doesNotThrowAnyException();
+		assertThatThrownBy(() -> validator.validate(merchantId, TEST_RECEIVER + "/" + UUID.randomUUID()))
+				.isInstanceOf(InvalidWebhookUrlException.class);
+		assertThatThrownBy(() -> validator.validate(merchantId, TEST_RECEIVER + "/" + merchantId + "/../../../actuator"))
+				.isInstanceOf(InvalidWebhookUrlException.class);
+	}
+
+	@Test
+	void exemptsNothingOutsideTheDemoProfile() {
+		WebhookUrlValidator withoutTestReceiver = new WebhookUrlValidator(WebhookUrlValidatorTest::resolve, "");
+		UUID merchantId = UUID.randomUUID();
+		assertThatThrownBy(() -> withoutTestReceiver.validate(merchantId, TEST_RECEIVER + "/" + merchantId))
+				.isInstanceOf(InvalidWebhookUrlException.class);
 	}
 
 	// Os nomes vêm do mapa, e qualquer outro dá "não encontrado". Um IP escrito na URL vai para o InetAddress, que

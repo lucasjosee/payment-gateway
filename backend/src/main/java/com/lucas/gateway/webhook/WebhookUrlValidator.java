@@ -1,5 +1,7 @@
 package com.lucas.gateway.webhook;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.Inet4Address;
@@ -8,6 +10,7 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 // Decide se uma URL pode receber webhooks. A decisão olha os endereços para onde o host resolve, e não o texto da
@@ -31,18 +34,32 @@ public class WebhookUrlValidator {
 			.toList();
 
 	private final HostResolver resolver;
+	// Fora do profile demo a propriedade não existe, o valor fica vazio e nenhuma URL escapa da validação.
+	private final String testReceiverBaseUrl;
 
-	public WebhookUrlValidator() {
-		this(InetAddress::getAllByName);
+	@Autowired
+	public WebhookUrlValidator(@Value("${gateway.webhook-receiver-base-url:}") String testReceiverBaseUrl) {
+		this(InetAddress::getAllByName, testReceiverBaseUrl);
 	}
 
 	// Usado pelos testes, para eles não dependerem da rede.
-	WebhookUrlValidator(HostResolver resolver) {
+	WebhookUrlValidator(HostResolver resolver, String testReceiverBaseUrl) {
 		this.resolver = resolver;
+		this.testReceiverBaseUrl = testReceiverBaseUrl;
+	}
+
+	// Só a URL do receptor de teste do próprio lojista, montada como o WebhookReceiver a devolve, dispensa a
+	// validação. A comparação é do texto inteiro: aceitar tudo o que começasse com a URL do receptor deixaria passar
+	// um .../webhook-receiver/../../ que leva a outra rota da própria API.
+	public void validate(UUID merchantId, String url) {
+		if (!testReceiverBaseUrl.isEmpty() && url.equals(testReceiverBaseUrl + "/" + merchantId)) {
+			return;
+		}
+		validate(url);
 	}
 
 	// O URI.create é o mesmo que o WebhookSender usa, para os dois enxergarem o mesmo host na URL.
-	public void validate(String url) {
+	void validate(String url) {
 		URI uri;
 		try {
 			uri = URI.create(url);

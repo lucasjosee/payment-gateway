@@ -25,17 +25,19 @@ public class WebhookDispatcher {
 	private final WebhookDeliveryRepository webhookDeliveryRepository;
 	private final WebhookEndpointRepository webhookEndpointRepository;
 	private final WebhookSigningSecrets signingSecrets;
+	private final WebhookUrlValidator urlValidator;
 	private final WebhookSender sender;
 	private final TransactionTemplate transactionTemplate;
 	private final List<Duration> retryDelays;
 
 	public WebhookDispatcher(WebhookDeliveryRepository webhookDeliveryRepository,
 			WebhookEndpointRepository webhookEndpointRepository, WebhookSigningSecrets signingSecrets,
-			WebhookSender sender, TransactionTemplate transactionTemplate,
+			WebhookUrlValidator urlValidator, WebhookSender sender, TransactionTemplate transactionTemplate,
 			@Value("${gateway.webhook-retry-delays}") List<Duration> retryDelays) {
 		this.webhookDeliveryRepository = webhookDeliveryRepository;
 		this.webhookEndpointRepository = webhookEndpointRepository;
 		this.signingSecrets = signingSecrets;
+		this.urlValidator = urlValidator;
 		this.sender = sender;
 		this.transactionTemplate = transactionTemplate;
 		this.retryDelays = retryDelays;
@@ -77,6 +79,8 @@ public class WebhookDispatcher {
 				delivery.getChargeId(), delivery.getAttempts() + 1, retryDelays.size() + 1);
 		long start = System.nanoTime();
 		try {
+			// De novo a cada envio, e não só no cadastro, porque o host pode passar a resolver para outro endereço.
+			urlValidator.validate(delivery.getMerchantId(), endpoint.getUrl());
 			int httpStatus = sender.send(endpoint.getUrl(), delivery.getId(), signingSecret, delivery.getPayload());
 			long elapsedMs = (System.nanoTime() - start) / 1_000_000;
 			if (httpStatus >= 200 && httpStatus < 300) {
@@ -88,6 +92,9 @@ public class WebhookDispatcher {
 						httpStatus, elapsedMs);
 				retryOrGiveUp(delivery, httpStatus);
 			}
+		} catch (InvalidWebhookUrlException e) {
+			log.warn("Webhook {} não foi enviado: {}", delivery.getEventType(), e.getMessage());
+			retryOrGiveUp(delivery, null);
 		} catch (RestClientException | IllegalArgumentException e) {
 			log.warn("Webhook {} falhou sem resposta do servidor do lojista: {} em {} ms", delivery.getEventType(),
 					reasonOf(e), (System.nanoTime() - start) / 1_000_000);
