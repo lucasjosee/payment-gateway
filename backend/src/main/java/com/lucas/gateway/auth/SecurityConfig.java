@@ -33,6 +33,9 @@ public class SecurityConfig {
 						.requestMatchers(HttpMethod.POST, "/merchants").permitAll()
 						.requestMatchers("/actuator/health/**").permitAll()
 						.requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+						// O receptor de teste faz o papel do servidor do lojista, que recebe o webhook sem API key. A rota
+						// só existe no profile demo. Fora dele, o pedido passa por aqui e dá 404.
+						.requestMatchers(HttpMethod.POST, "/dev/webhook-receiver/*").permitAll()
 						.anyRequest().authenticated())
 				// Erros do Spring Security acontecem nos filtros, antes de chegar a qualquer controller, e por isso
 				// não passam pelo ApiExceptionHandler. Encaminhar para o resolver faz o 401 sair em Problem Details.

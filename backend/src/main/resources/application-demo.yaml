@@ -1,7 +1,12 @@
-# Profile da demonstração. Além de ligar o stream de logs em GET /api/dev/logs (pacote devlogs), mostra o SQL que
-# cada pedido executa. Aparecem só os comandos, com ? no lugar dos valores: os valores só seriam registrados no
+# Profile da demonstração. Além de ligar as rotas de /api/dev (o stream de logs e o receptor de webhook), mostra o
+# SQL que cada pedido executa. Aparecem só os comandos, com ? no lugar dos valores: os valores só seriam registrados no
 # nível TRACE, que continua desligado.
 logging:
   level:
     org.hibernate.SQL: debug
     org.springframework.jdbc.core.JdbcTemplate: debug
+
+gateway:
+  # Endereço do receptor de teste visto de dentro da API, que é de onde o despachante envia. O localhost funciona
+  # igual no notebook e na EC2, onde a API roda num container e escuta na mesma porta.
+  webhook-receiver-base-url: http://localhost:${server.port:8080}${server.servlet.context-path}/dev/webhook-receiver
