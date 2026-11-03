@@ -1,0 +1,6 @@
+# Fica em config/ para somar ao application.yaml principal, e não substituí-lo, como faria um arquivo de mesmo nome
+# na raiz. Cada classe de teste sobe o próprio Postgres e o derruba no fim, mas o Spring guarda o contexto para
+# reaproveitar, e o despachante desse contexto passaria a tentar um banco desligado a cada segundo.
+gateway:
+  scheduling:
+    enabled: false

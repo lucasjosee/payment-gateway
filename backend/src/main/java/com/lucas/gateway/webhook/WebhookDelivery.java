@@ -61,6 +61,23 @@ public class WebhookDelivery {
 		this.createdAt = now;
 	}
 
+	public void markDelivered(int httpStatus) {
+		finishAttempt(WebhookDeliveryStatus.DELIVERED, httpStatus);
+	}
+
+	// O status HTTP vem nulo quando não houve resposta, como num tempo esgotado ou numa conexão recusada.
+	public void markFailed(Integer httpStatus) {
+		finishAttempt(WebhookDeliveryStatus.FAILED, httpStatus);
+	}
+
+	// A próxima tentativa volta a nulo porque a CHECK da V6 só aceita esse campo numa entrega pendente.
+	private void finishAttempt(WebhookDeliveryStatus finalStatus, Integer httpStatus) {
+		this.attempts++;
+		this.lastHttpStatus = httpStatus;
+		this.status = finalStatus;
+		this.nextAttemptAt = null;
+	}
+
 	public UUID getId() {
 		return id;
 	}
