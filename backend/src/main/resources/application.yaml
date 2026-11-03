@@ -53,6 +53,9 @@ gateway:
   # Chave do HMAC que gera o segredo de assinatura de cada webhook. Fora daqui ela precisa estar definida, porque quem
   # a conhece calcula o segredo de qualquer lojista. Trocá-la muda o segredo de todos os lojistas de uma vez.
   webhook-signing-key: ${WEBHOOK_SIGNING_KEY:dev-only-webhook-signing-key}
+  # Espera antes de cada nova tentativa de um webhook que falhou, crescendo para dar tempo ao servidor do lojista de
+  # voltar. Passada a última, a entrega fica FAILED, umas oito horas e meia depois da primeira tentativa.
+  webhook-retry-delays: 1m, 5m, 30m, 2h, 6h
 
 springdoc:
   # O Swagger fica ligado de propósito em todo ambiente, inclusive na EC2, porque é a vitrine do projeto.

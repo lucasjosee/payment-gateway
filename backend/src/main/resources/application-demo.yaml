@@ -10,3 +10,5 @@ gateway:
   # Endereço do receptor de teste visto de dentro da API, que é de onde o despachante envia. O localhost funciona
   # igual no notebook e na EC2, onde a API roda num container e escuta na mesma porta.
   webhook-receiver-base-url: http://localhost:${server.port:8080}${server.servlet.context-path}/dev/webhook-receiver
+  # Em segundos, para quem testa a demonstração ver as tentativas acontecendo, em vez das horas de fora daqui.
+  webhook-retry-delays: 5s, 15s, 30s, 1m, 2m

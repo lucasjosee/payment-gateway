@@ -4,12 +4,15 @@ import com.lucas.gateway.auth.ApiKeyAuthenticationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestClientException;
 
+import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 // Envia as entregas pendentes que já venceram, uma por transação. A transação segura a trava da linha durante o
@@ -24,15 +27,18 @@ public class WebhookDispatcher {
 	private final WebhookSigningSecrets signingSecrets;
 	private final WebhookSender sender;
 	private final TransactionTemplate transactionTemplate;
+	private final List<Duration> retryDelays;
 
 	public WebhookDispatcher(WebhookDeliveryRepository webhookDeliveryRepository,
 			WebhookEndpointRepository webhookEndpointRepository, WebhookSigningSecrets signingSecrets,
-			WebhookSender sender, TransactionTemplate transactionTemplate) {
+			WebhookSender sender, TransactionTemplate transactionTemplate,
+			@Value("${gateway.webhook-retry-delays}") List<Duration> retryDelays) {
 		this.webhookDeliveryRepository = webhookDeliveryRepository;
 		this.webhookEndpointRepository = webhookEndpointRepository;
 		this.signingSecrets = signingSecrets;
 		this.sender = sender;
 		this.transactionTemplate = transactionTemplate;
+		this.retryDelays = retryDelays;
 	}
 
 	// O fixedDelay conta a partir do fim da rodada anterior, então duas rodadas desta instância nunca se sobrepõem.
@@ -67,7 +73,8 @@ public class WebhookDispatcher {
 	private void send(WebhookDelivery delivery) {
 		WebhookEndpoint endpoint = webhookEndpointRepository.findByMerchantId(delivery.getMerchantId()).orElseThrow();
 		String signingSecret = signingSecrets.secretFor(endpoint.getId());
-		log.info("Enviando o webhook {} da cobrança {}", delivery.getEventType(), delivery.getChargeId());
+		log.info("Enviando o webhook {} da cobrança {}, tentativa {} de {}", delivery.getEventType(),
+				delivery.getChargeId(), delivery.getAttempts() + 1, retryDelays.size() + 1);
 		long start = System.nanoTime();
 		try {
 			int httpStatus = sender.send(endpoint.getUrl(), delivery.getId(), signingSecret, delivery.getPayload());
@@ -77,14 +84,29 @@ public class WebhookDispatcher {
 				log.info("Webhook {} entregue: o servidor do lojista respondeu {} em {} ms", delivery.getEventType(),
 						httpStatus, elapsedMs);
 			} else {
-				delivery.markFailed(httpStatus);
 				log.warn("Webhook {} falhou: o servidor do lojista respondeu {} em {} ms", delivery.getEventType(),
 						httpStatus, elapsedMs);
+				retryOrGiveUp(delivery, httpStatus);
 			}
 		} catch (RestClientException | IllegalArgumentException e) {
-			delivery.markFailed(null);
 			log.warn("Webhook {} falhou sem resposta do servidor do lojista: {} em {} ms", delivery.getEventType(),
 					reasonOf(e), (System.nanoTime() - start) / 1_000_000);
+			retryOrGiveUp(delivery, null);
+		}
+	}
+
+	// A espera depois da primeira falha é a primeira da lista, e assim por diante. Quando a lista acaba, a entrega
+	// desiste: com cinco esperas, são seis tentativas.
+	private void retryOrGiveUp(WebhookDelivery delivery, Integer httpStatus) {
+		int failures = delivery.getAttempts() + 1;
+		if (failures <= retryDelays.size()) {
+			Duration delay = retryDelays.get(failures - 1);
+			delivery.scheduleRetry(httpStatus, delay);
+			log.info("Nova tentativa do webhook {} em {} s", delivery.getEventType(), delay.toSeconds());
+		} else {
+			delivery.markFailed(httpStatus);
+			log.warn("Webhook {} sem novas tentativas: a entrega ficou FAILED depois de {} tentativas",
+					delivery.getEventType(), delivery.getAttempts());
 		}
 	}
 

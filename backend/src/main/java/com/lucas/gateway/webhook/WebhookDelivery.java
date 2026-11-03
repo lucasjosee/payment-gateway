@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -62,20 +63,25 @@ public class WebhookDelivery {
 	}
 
 	public void markDelivered(int httpStatus) {
-		finishAttempt(WebhookDeliveryStatus.DELIVERED, httpStatus);
+		finishAttempt(httpStatus, WebhookDeliveryStatus.DELIVERED, null);
 	}
 
-	// O status HTTP vem nulo quando não houve resposta, como num tempo esgotado ou numa conexão recusada.
+	// Nos dois métodos de falha, o status HTTP vem nulo quando não houve resposta, como num tempo esgotado ou numa
+	// conexão recusada.
+	public void scheduleRetry(Integer httpStatus, Duration delay) {
+		finishAttempt(httpStatus, WebhookDeliveryStatus.PENDING, Instant.now().plus(delay));
+	}
+
 	public void markFailed(Integer httpStatus) {
-		finishAttempt(WebhookDeliveryStatus.FAILED, httpStatus);
+		finishAttempt(httpStatus, WebhookDeliveryStatus.FAILED, null);
 	}
 
-	// A próxima tentativa volta a nulo porque a CHECK da V6 só aceita esse campo numa entrega pendente.
-	private void finishAttempt(WebhookDeliveryStatus finalStatus, Integer httpStatus) {
+	// A CHECK da V6 só aceita a próxima tentativa numa entrega pendente.
+	private void finishAttempt(Integer httpStatus, WebhookDeliveryStatus status, Instant nextAttemptAt) {
 		this.attempts++;
 		this.lastHttpStatus = httpStatus;
-		this.status = finalStatus;
-		this.nextAttemptAt = null;
+		this.status = status;
+		this.nextAttemptAt = nextAttemptAt;
 	}
 
 	public UUID getId() {
