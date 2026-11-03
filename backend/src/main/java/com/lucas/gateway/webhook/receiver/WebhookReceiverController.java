@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,16 +30,21 @@ import java.util.UUID;
 public class WebhookReceiverController {
 
 	private final WebhookReceiver receiver;
+	private final WebhookSignatureVerifier signatureVerifier;
 
-	public WebhookReceiverController(WebhookReceiver receiver) {
+	public WebhookReceiverController(WebhookReceiver receiver, WebhookSignatureVerifier signatureVerifier) {
 		this.receiver = receiver;
+		this.signatureVerifier = signatureVerifier;
 	}
 
 	// Público, como o endpoint de um lojista de verdade, e por isso liberado na SecurityConfig. O corpo é lido direto
 	// do stream e só até o limite: com @RequestBody, o Spring guardaria o corpo inteiro na memória antes de conferir.
 	@PostMapping("/{merchantId}")
 	@SecurityRequirements
-	public ResponseEntity<Void> receive(@PathVariable UUID merchantId, InputStream body) throws IOException {
+	public ResponseEntity<Void> receive(@PathVariable UUID merchantId,
+			@RequestHeader(name = "Ponte-Event-Id", required = false) UUID eventId,
+			@RequestHeader(name = "Ponte-Signature", required = false) String signature,
+			InputStream body) throws IOException {
 		if (receiver.isOffline(merchantId)) {
 			return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
 		}
@@ -46,7 +52,11 @@ public class WebhookReceiverController {
 		if (bytes.length > WebhookReceiver.MAX_BODY_BYTES) {
 			return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE).build();
 		}
-		receiver.record(merchantId, new ReceivedWebhook(Instant.now(), new String(bytes, StandardCharsets.UTF_8)));
+		// A conta usa os bytes como chegaram: converter o JSON em objeto e de volta em texto mudaria os bytes. Um
+		// lojista de verdade descartaria a entrega inválida, mas o receptor a guarda marcada, para a tela mostrar.
+		boolean signatureValid = signatureVerifier.isValid(merchantId, signature, bytes);
+		receiver.record(merchantId, new ReceivedWebhook(Instant.now(), eventId, signatureValid,
+				new String(bytes, StandardCharsets.UTF_8)));
 		return ResponseEntity.ok().build();
 	}
 

@@ -21,14 +21,16 @@ public class WebhookDispatcher {
 
 	private final WebhookDeliveryRepository webhookDeliveryRepository;
 	private final WebhookEndpointRepository webhookEndpointRepository;
+	private final WebhookSigningSecrets signingSecrets;
 	private final WebhookSender sender;
 	private final TransactionTemplate transactionTemplate;
 
 	public WebhookDispatcher(WebhookDeliveryRepository webhookDeliveryRepository,
-			WebhookEndpointRepository webhookEndpointRepository, WebhookSender sender,
-			TransactionTemplate transactionTemplate) {
+			WebhookEndpointRepository webhookEndpointRepository, WebhookSigningSecrets signingSecrets,
+			WebhookSender sender, TransactionTemplate transactionTemplate) {
 		this.webhookDeliveryRepository = webhookDeliveryRepository;
 		this.webhookEndpointRepository = webhookEndpointRepository;
+		this.signingSecrets = signingSecrets;
 		this.sender = sender;
 		this.transactionTemplate = transactionTemplate;
 	}
@@ -60,13 +62,15 @@ public class WebhookDispatcher {
 	}
 
 	// O endpoint é lido agora, e não quando a entrega foi criada, para uma troca de URL valer também para o que
-	// ainda está pendente.
+	// ainda está pendente. O id da entrega vai como id do evento porque é o mesmo em toda tentativa, e é por ele que
+	// o lojista reconhece um evento que já recebeu.
 	private void send(WebhookDelivery delivery) {
-		String url = webhookEndpointRepository.findByMerchantId(delivery.getMerchantId()).orElseThrow().getUrl();
+		WebhookEndpoint endpoint = webhookEndpointRepository.findByMerchantId(delivery.getMerchantId()).orElseThrow();
+		String signingSecret = signingSecrets.secretFor(endpoint.getId());
 		log.info("Enviando o webhook {} da cobrança {}", delivery.getEventType(), delivery.getChargeId());
 		long start = System.nanoTime();
 		try {
-			int httpStatus = sender.send(url, delivery.getPayload());
+			int httpStatus = sender.send(endpoint.getUrl(), delivery.getId(), signingSecret, delivery.getPayload());
 			long elapsedMs = (System.nanoTime() - start) / 1_000_000;
 			if (httpStatus >= 200 && httpStatus < 300) {
 				delivery.markDelivered(httpStatus);
