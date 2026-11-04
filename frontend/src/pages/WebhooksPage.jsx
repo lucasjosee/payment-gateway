@@ -1,4 +1,5 @@
 import LoadError from '../components/LoadError.jsx'
+import SigningSecretCard from '../webhooks/SigningSecretCard.jsx'
 import WebhookEndpointForm from '../webhooks/WebhookEndpointForm.jsx'
 import { useWebhookEndpoint } from '../webhooks/useWebhookEndpoint.js'
 import styles from './WebhooksPage.module.css'
@@ -14,7 +15,13 @@ function WebhooksPage() {
     if (error) {
       return <LoadError message="Não deu para carregar o webhook." error={error} onRetry={reload} />
     }
-    return <WebhookEndpointForm registeredUrl={endpoint?.url ?? null} onRegistered={update} />
+    return (
+      <>
+        <WebhookEndpointForm registeredUrl={endpoint?.url ?? null} onRegistered={update} />
+        {/* O segredo nasce com o endpoint, então só existe depois do primeiro cadastro. */}
+        {endpoint && <SigningSecretCard secret={endpoint.signingSecret} />}
+      </>
+    )
   }
 
   return (
