@@ -1,5 +1,6 @@
 import LoadError from '../components/LoadError.jsx'
 import SigningSecretCard from '../webhooks/SigningSecretCard.jsx'
+import WebhookDeliveryList from '../webhooks/WebhookDeliveryList.jsx'
 import WebhookEndpointForm from '../webhooks/WebhookEndpointForm.jsx'
 import { useWebhookEndpoint } from '../webhooks/useWebhookEndpoint.js'
 import styles from './WebhooksPage.module.css'
@@ -18,8 +19,13 @@ function WebhooksPage() {
     return (
       <>
         <WebhookEndpointForm registeredUrl={endpoint?.url ?? null} onRegistered={update} />
-        {/* O segredo nasce com o endpoint, então só existe depois do primeiro cadastro. */}
-        {endpoint && <SigningSecretCard secret={endpoint.signingSecret} />}
+        {/* O segredo nasce com o endpoint, e sem ele nenhuma entrega é gerada. */}
+        {endpoint && (
+          <>
+            <SigningSecretCard secret={endpoint.signingSecret} />
+            <WebhookDeliveryList />
+          </>
+        )}
       </>
     )
   }

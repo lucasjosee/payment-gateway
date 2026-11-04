@@ -3,7 +3,7 @@ import Badge from '../components/Badge.jsx'
 import { chargeStatus, declineReasonText } from './chargeStatus.js'
 import { formatDateTime } from './dateTime.js'
 import { formatCents } from './money.js'
-import styles from './ChargeTable.module.css'
+import styles from '../components/DataTable.module.css'
 
 function ChargeTable({ charges }) {
   return (
