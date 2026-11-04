@@ -59,6 +59,7 @@ export const api = {
       idempotencyKey: idempotencyKey ?? (idempotent ? crypto.randomUUID() : undefined),
       tag,
     }),
+  put: (path, { body } = {}) => request('PUT', path, { body }),
 }
 
 async function request(method, path, { body, idempotencyKey, tag } = {}) {
@@ -185,8 +186,10 @@ function maskHeaders(headers) {
 }
 
 // O console mostra os corpos, mas nunca um segredo inteiro. Do cartão fica só o final, como a própria API guarda.
-// A API key aparece por inteiro numa única resposta, a do cadastro do lojista, e também é mascarada.
-// A máscara vale só para a cópia do console: quem chamou recebe os dados reais.
+// A API key aparece por inteiro numa única resposta, a do cadastro do lojista, e também é mascarada. O segredo de
+// assinatura vem em toda resposta de /webhook-endpoint e não deixa nenhum caractere à vista, porque, ao contrário do
+// começo da API key, nenhum pedaço dele fica guardado em claro. A máscara vale só para a cópia do console: quem
+// chamou recebe os dados reais.
 function maskSecrets(body) {
   if (body === null || typeof body !== 'object') {
     return body ?? null
@@ -197,6 +200,9 @@ function maskSecrets(body) {
   }
   if (typeof body.apiKey === 'string') {
     masked.apiKey = maskApiKey(body.apiKey)
+  }
+  if (typeof body.signingSecret === 'string') {
+    masked.signingSecret = `whsec_${MASK}`
   }
   return masked
 }

@@ -1,0 +1,30 @@
+.card {
+  max-width: 40rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Uma URL longa não tem onde quebrar sozinha e passaria da borda do card. */
+.status,
+.error {
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.status {
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger-text);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

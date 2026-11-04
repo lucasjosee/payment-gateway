@@ -39,6 +39,9 @@ function Layout() {
             <NavLink to="/cobrancas/nova" className={navLinkClass}>
               Nova cobrança
             </NavLink>
+            <NavLink to="/webhooks" className={navLinkClass}>
+              Webhooks
+            </NavLink>
             <NavLink to="/laboratorio" className={navLinkClass}>
               Laboratório
             </NavLink>

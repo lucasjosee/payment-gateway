@@ -5,6 +5,7 @@ import ChargesPage from './pages/ChargesPage.jsx'
 import LabPage from './pages/LabPage.jsx'
 import NewChargePage from './pages/NewChargePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
+import WebhooksPage from './pages/WebhooksPage.jsx'
 import WelcomePage from './pages/WelcomePage.jsx'
 import RequireSession from './session/RequireSession.jsx'
 
@@ -20,6 +21,7 @@ function App() {
           <Route path="/cobrancas" element={<ChargesPage />} />
           <Route path="/cobrancas/nova" element={<NewChargePage />} />
           <Route path="/cobrancas/:id" element={<ChargeDetailPage />} />
+          <Route path="/webhooks" element={<WebhooksPage />} />
           <Route path="/laboratorio" element={<LabPage />} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />

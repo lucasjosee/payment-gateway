@@ -1,0 +1,13 @@
+.intro {
+  max-width: 40rem;
+  margin-top: var(--space-3);
+  color: var(--color-text-muted);
+}
+
+.content {
+  margin-top: var(--space-6);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
