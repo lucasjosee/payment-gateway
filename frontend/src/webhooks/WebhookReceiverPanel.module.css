@@ -32,9 +32,10 @@
   cursor: pointer;
 }
 
-/* Como o corpo vem de fora, o nome do evento pode ser enorme e sem espaços. */
+/* A base faz o nome descer inteiro para a linha de baixo quando não cabe. Só um nome enorme, sem espaços, é que quebra
+   no meio: como o corpo vem de fora, ele pode ser assim. */
 .event {
-  flex: 1;
+  flex: 1 1 10rem;
   min-width: 0;
   overflow-wrap: anywhere;
 }

@@ -23,6 +23,11 @@
   list-style: none;
 }
 
+.arrivals {
+  padding: 0;
+  list-style: none;
+}
+
 .code {
   font-family: var(--font-mono);
   font-size: var(--text-sm);

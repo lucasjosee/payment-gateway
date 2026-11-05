@@ -54,7 +54,8 @@ function GuaranteedDeliveryExperiment() {
     <Card title="Entrega garantida">
       <p className={styles.description}>
         Deixa o receptor de teste fora do ar, cria uma cobrança e acompanha a API insistindo no webhook. O esperado é
-        cada tentativa falhar com 503, sem o webhook se perder. Os pedidos de cada etapa ficam destacados no console.
+        cada tentativa falhar com 503 e, com o receptor de volta, o evento chegar uma vez só. Os pedidos de cada etapa
+        ficam destacados no console.
       </p>
       <Button variant="secondary" onClick={start} disabled={checking}>
         {checking ? 'Conferindo…' : run ? 'Recomeçar' : 'Começar'}

@@ -4,20 +4,33 @@ import { usePolling } from '../api/usePolling.js'
 import Button from '../components/Button.jsx'
 import WebhookDeliveryTable from '../webhooks/WebhookDeliveryTable.jsx'
 import ExperimentStep from './ExperimentStep.jsx'
+import GuaranteedDeliveryResult from './GuaranteedDeliveryResult.jsx'
 import { testChargeBody } from './testChargeBody.js'
 import styles from './Experiment.module.css'
 
 const AMOUNT_CENTS = 3000
+// Duas falhas bastam para mostrar a espera entre uma tentativa e outra.
+const FAILURES_TO_SHOW = 2
 
 function isFinished({ items }) {
   return items.length > 0 && items[0].status !== 'PENDING'
 }
 
-function currentStep({ offline, charge }) {
+// A entrega só fica DELIVERED depois de o receptor responder, então basta uma leitura dele para achar o evento.
+function readOnce() {
+  return true
+}
+
+// Uma API reiniciada no meio do experimento volta com o receptor ligado, e a entrega chega sem ninguém religar. Por
+// isso a entrega concluída também avança para a última etapa.
+function currentStep({ offline, charge, delivery, arrivals }) {
   if (!charge) {
     return offline ? 2 : 1
   }
-  return 3
+  if (!offline || delivery?.status === 'DELIVERED') {
+    return arrivals ? 6 : 5
+  }
+  return delivery?.attempts >= FAILURES_TO_SHOW ? 4 : 3
 }
 
 function GuaranteedDeliveryRun({ tag, startsOffline }) {
@@ -27,8 +40,14 @@ function GuaranteedDeliveryRun({ tag, startsOffline }) {
   const [error, setError] = useState(null)
   const deliveries = usePolling(charge ? `/webhook-deliveries?chargeId=${charge.id}` : null, { until: isFinished, tag })
   const delivery = deliveries.data?.items[0]
+  const receiver = usePolling(delivery?.status === 'DELIVERED' ? '/dev/webhook-receiver' : null, {
+    until: readOnce,
+    tag,
+  })
+  const arrivals = receiver.data?.received.filter((webhook) => webhook.eventId === delivery.id)
+  const failed = delivery?.status === 'FAILED'
 
-  const current = currentStep({ offline, charge })
+  const current = currentStep({ offline, charge, delivery, arrivals })
   const statusOf = (number) => (number < current ? 'done' : number === current ? 'current' : 'waiting')
 
   async function perform(action) {
@@ -43,10 +62,10 @@ function GuaranteedDeliveryRun({ tag, startsOffline }) {
     }
   }
 
-  function takeReceiverOffline() {
+  function setReceiverOffline(value) {
     return perform(async () => {
-      const receiver = await api.put('/dev/webhook-receiver/offline', { body: { offline: true }, tag })
-      setOffline(receiver.offline)
+      const updated = await api.put('/dev/webhook-receiver/offline', { body: { offline: value }, tag })
+      setOffline(updated.offline)
     })
   }
 
@@ -65,7 +84,7 @@ function GuaranteedDeliveryRun({ tag, startsOffline }) {
             continua assim até ser religado na página de webhooks.
           </p>
           {current === 1 && (
-            <Button variant="secondary" onClick={takeReceiverOffline} disabled={pending}>
+            <Button variant="secondary" onClick={() => setReceiverOffline(true)} disabled={pending}>
               Tirar do ar
             </Button>
           )}
@@ -95,7 +114,41 @@ function GuaranteedDeliveryRun({ tag, startsOffline }) {
             </p>
           )}
         </ExperimentStep>
+
+        <ExperimentStep number={4} title="Religar o receptor" status={statusOf(4)}>
+          {!failed && (
+            <p className={styles.description}>
+              Ninguém precisa pedir o envio de novo: a entrega continua guardada no banco, e a API tenta outra vez no
+              horário marcado na tabela.
+            </p>
+          )}
+          {current === 4 && (
+            <Button variant="secondary" onClick={() => setReceiverOffline(false)} disabled={pending}>
+              Religar
+            </Button>
+          )}
+        </ExperimentStep>
+
+        <ExperimentStep number={5} title="Ver o evento chegar" status={statusOf(5)}>
+          {arrivals ? (
+            <GuaranteedDeliveryResult delivery={delivery} arrivals={arrivals} />
+          ) : (
+            !failed && <p className={styles.description}>Aguardando a próxima tentativa da API.</p>
+          )}
+          {receiver.error && (
+            <p role="status" className={styles.error}>
+              Não deu para consultar o receptor. {receiver.error.message} A página continua tentando.
+            </p>
+          )}
+        </ExperimentStep>
       </ol>
+
+      {failed && (
+        <p role="alert" className={styles.error}>
+          As tentativas acabaram antes de o evento chegar, e a API não vai insistir mais nesta entrega. Recomece o
+          experimento.
+        </p>
+      )}
 
       {error && (
         <p role="alert" className={styles.error}>
