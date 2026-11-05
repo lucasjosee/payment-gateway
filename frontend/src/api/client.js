@@ -50,7 +50,7 @@ export function subscribeToRequests(listener) {
 
 export const api = {
   // background: true marca uma consulta que a página repete sozinha. O console as esconde por padrão.
-  get: (path, { background } = {}) => request('GET', path, { background }),
+  get: (path, { background, tag } = {}) => request('GET', path, { background, tag }),
   // idempotent: true gera uma Idempotency-Key nova para o pedido. Quem precisa mostrar ou repetir a chave, como a
   // tela de nova cobrança, passa a sua em idempotencyKey. A tag marca os pedidos de um mesmo experimento do
   // laboratório, para o console destacá-los juntos.
