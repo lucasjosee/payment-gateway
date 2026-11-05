@@ -2,7 +2,7 @@ package com.lucas.gateway.charge;
 
 import java.util.Set;
 
-// Os nomes dos estados se repetem nas CHECK constraints da V2__charges.sql. Um estado novo aqui também
+// Os nomes dos estados se repetem nas CHECK constraints da V7__pix.sql. Um estado novo aqui também
 // precisa de uma migration, senão o banco recusa a primeira cobrança que chegar nele.
 public enum ChargeStatus {
 
