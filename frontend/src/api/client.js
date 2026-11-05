@@ -60,7 +60,7 @@ export const api = {
       idempotencyKey: idempotencyKey ?? (idempotent ? crypto.randomUUID() : undefined),
       tag,
     }),
-  put: (path, { body } = {}) => request('PUT', path, { body }),
+  put: (path, { body, tag } = {}) => request('PUT', path, { body, tag }),
 }
 
 async function request(method, path, { body, idempotencyKey, tag, background = false } = {}) {

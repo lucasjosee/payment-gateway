@@ -1,0 +1,46 @@
+.step {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.number {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border-radius: var(--radius-full);
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+}
+
+.current .number {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+.done .number {
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+}
+
+/* O min-width deixa a tabela da entrega rolar de lado aqui dentro, em vez de alargar a página. */
+.content {
+  flex: 1;
+  min-width: 0;
+}
+
+.content > * + * {
+  margin-top: var(--space-3);
+}
+
+.title {
+  line-height: var(--space-6);
+}
+
+.waiting .title {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-regular);
+}

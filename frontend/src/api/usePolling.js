@@ -7,20 +7,29 @@ const INTERVAL_MS = 2000
 // porque foi a pessoa que os causou. As repetições vão marcadas como de segundo plano, para o console poder
 // escondê-las. A próxima só é agendada depois que a anterior termina: com a API lenta, um intervalo fixo acumularia
 // pedidos em paralelo, e uma resposta velha poderia chegar depois de uma nova.
-export function usePolling(path) {
+//
+// Com path nulo, ainda não há o que consultar. O until recebe cada resposta e, ao devolver true, encerra as repetições.
+// Ele precisa manter a mesma referência entre os renders, como uma função declarada fora do componente.
+export function usePolling(path, { until, tag } = {}) {
   const [reloadCount, setReloadCount] = useState(0)
   const [response, setResponse] = useState({ requestKey: null, data: null, error: null })
   const requestKey = `${path}:${reloadCount}`
 
   useEffect(() => {
+    if (path === null) {
+      return
+    }
     let active = true
     let timer = null
 
     async function load(background) {
       try {
-        const data = await api.get(path, { background })
+        const data = await api.get(path, { background, tag })
         if (active) {
           setResponse({ requestKey, data, error: null })
+        }
+        if (until?.(data)) {
+          return
         }
       } catch (error) {
         // Repetir não faz aparecer uma rota que não existe, como a do receptor de teste fora do profile demo.
@@ -55,7 +64,7 @@ export function usePolling(path) {
       active = false
       clearTimeout(timer)
     }
-  }, [path, requestKey])
+  }, [path, requestKey, until, tag])
 
   return {
     data: response.data,

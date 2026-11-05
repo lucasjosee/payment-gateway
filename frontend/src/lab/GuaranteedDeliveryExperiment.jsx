@@ -4,6 +4,7 @@ import { api } from '../api/client.js'
 import Button from '../components/Button.jsx'
 import Card from '../components/Card.jsx'
 import { useConsole } from '../console/useConsole.js'
+import GuaranteedDeliveryRun from './GuaranteedDeliveryRun.jsx'
 import styles from './Experiment.module.css'
 
 const NO_TEST_RECEIVER = 'Esta API não tem o receptor de teste. Ele só existe quando ela roda com o profile demo.'
@@ -71,7 +72,7 @@ function GuaranteedDeliveryExperiment() {
         </p>
       )}
 
-      {run && <p role="status">Tudo pronto: o receptor de teste é o webhook cadastrado.</p>}
+      {run && <GuaranteedDeliveryRun tag={run.tag} startsOffline={run.startsOffline} />}
     </Card>
   )
 }
