@@ -2,6 +2,7 @@ import LoadError from '../components/LoadError.jsx'
 import SigningSecretCard from '../webhooks/SigningSecretCard.jsx'
 import WebhookDeliveryList from '../webhooks/WebhookDeliveryList.jsx'
 import WebhookEndpointForm from '../webhooks/WebhookEndpointForm.jsx'
+import WebhookReceiverPanel from '../webhooks/WebhookReceiverPanel.jsx'
 import { useWebhookEndpoint } from '../webhooks/useWebhookEndpoint.js'
 import styles from './WebhooksPage.module.css'
 
@@ -24,6 +25,7 @@ function WebhooksPage() {
           <>
             <SigningSecretCard secret={endpoint.signingSecret} />
             <WebhookDeliveryList />
+            <WebhookReceiverPanel registeredUrl={endpoint.url} />
           </>
         )}
       </>

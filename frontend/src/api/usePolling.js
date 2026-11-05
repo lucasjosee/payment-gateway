@@ -23,11 +23,17 @@ export function usePolling(path) {
           setResponse({ requestKey, data, error: null })
         }
       } catch (error) {
+        // Repetir não faz aparecer uma rota que não existe, como a do receptor de teste fora do profile demo.
+        const definitive = error.status === 404
         if (active) {
-          // Uma repetição que falha não apaga o que já está na tela, e a seguinte ainda pode dar certo.
+          // Uma repetição que falha não apaga o que já está na tela, porque a seguinte ainda pode dar certo.
+          const keepData = background && !definitive
           setResponse((current) =>
-            background ? { ...current, error: current.error ?? error } : { requestKey, data: null, error },
+            keepData ? { ...current, error: current.error ?? error } : { requestKey, data: null, error },
           )
+        }
+        if (definitive) {
+          return
         }
       }
       if (active) {

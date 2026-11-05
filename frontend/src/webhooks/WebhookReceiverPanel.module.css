@@ -1,0 +1,51 @@
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.stale {
+  color: var(--color-warning-text);
+  font-size: var(--text-sm);
+}
+
+.error {
+  color: var(--color-danger-text);
+  font-size: var(--text-sm);
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.list > li {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) 0;
+  cursor: pointer;
+}
+
+/* Como o corpo vem de fora, o nome do evento pode ser enorme e sem espaços. */
+.event {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  max-height: 20rem;
+  margin-bottom: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  overflow: auto;
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}

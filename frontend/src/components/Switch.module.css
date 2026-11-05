@@ -1,0 +1,55 @@
+.switch {
+  position: relative;
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: var(--space-3);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+/* O campo fica invisível, mas continua recebendo o foco e o clique. O que aparece é o trilho. */
+.input {
+  position: absolute;
+  opacity: 0;
+}
+
+.track {
+  position: relative;
+  flex: none;
+  width: calc(var(--space-6) + var(--space-2));
+  height: var(--space-5);
+  border-radius: var(--radius-full);
+  background: var(--color-border-strong);
+  transition: background-color var(--duration-fast) ease;
+}
+
+.track::after {
+  content: '';
+  position: absolute;
+  top: var(--space-1);
+  left: var(--space-1);
+  width: var(--space-4);
+  height: var(--space-4);
+  border-radius: var(--radius-full);
+  background: var(--color-surface);
+  transition: transform var(--duration-fast) ease;
+}
+
+.input:checked + .track {
+  background: var(--color-accent);
+}
+
+.input:checked + .track::after {
+  background: var(--color-on-accent);
+  transform: translateX(var(--space-4));
+}
+
+.input:focus-visible + .track {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+}
+
+.input[aria-disabled='true'] + .track {
+  opacity: var(--opacity-disabled);
+}
