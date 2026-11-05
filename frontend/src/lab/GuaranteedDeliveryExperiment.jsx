@@ -4,20 +4,11 @@ import { api } from '../api/client.js'
 import Button from '../components/Button.jsx'
 import Card from '../components/Card.jsx'
 import { useConsole } from '../console/useConsole.js'
+import { findWebhookEndpoint } from './findWebhookEndpoint.js'
 import GuaranteedDeliveryRun from './GuaranteedDeliveryRun.jsx'
 import styles from './Experiment.module.css'
 
 const NO_TEST_RECEIVER = 'Esta API não tem o receptor de teste. Ele só existe quando ela roda com o profile demo.'
-
-// Sem webhook cadastrado, a API responde 404, e aqui isso não é um erro.
-function findEndpoint(tag) {
-  return api.get('/webhook-endpoint', { tag }).catch((error) => {
-    if (error.status === 404) {
-      return null
-    }
-    throw error
-  })
-}
 
 function GuaranteedDeliveryExperiment() {
   const { highlight } = useConsole()
@@ -37,7 +28,7 @@ function GuaranteedDeliveryExperiment() {
     setError(null)
     try {
       const receiver = await api.get('/dev/webhook-receiver', { tag })
-      const endpoint = await findEndpoint(tag)
+      const endpoint = await findWebhookEndpoint(tag)
       if (endpoint?.url === receiver.url) {
         setRun({ tag, startsOffline: receiver.offline })
       } else {

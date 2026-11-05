@@ -23,13 +23,14 @@ function countConflictMessages(outcomes) {
   return [...counts]
 }
 
-function ConcurrencyScoreboard({ outcomes, durationMs, finalCharge }) {
+function ConcurrencyScoreboard({ outcomes, durationMs, finalCharge, captureWebhooks }) {
   const kinds = outcomes.map(outcomeKind)
   const successes = kinds.filter((kind) => kind === 'success').length
   const conflicts = kinds.filter((kind) => kind === 'conflict').length
   const others = kinds.length - successes - conflicts
   const captureEvents = finalCharge.events.filter((event) => event.toStatus === 'CAPTURED').length
-  const asExpected = successes === 1 && conflicts === outcomes.length - 1 && captureEvents === 1
+  const webhooksAsExpected = captureWebhooks === null || captureWebhooks === 1
+  const asExpected = successes === 1 && conflicts === outcomes.length - 1 && captureEvents === 1 && webhooksAsExpected
 
   return (
     <div className={styles.scoreboard}>
@@ -72,6 +73,18 @@ function ConcurrencyScoreboard({ outcomes, durationMs, finalCharge }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {captureWebhooks === null ? (
+        <p className={styles.notice}>
+          Não há webhook cadastrado, então não dá para contar os eventos <code>charge.captured</code>.{' '}
+          <Link to="/webhooks">Cadastrar um webhook</Link>
+        </p>
+      ) : (
+        <p>
+          <strong>{captureWebhooks}</strong> {captureWebhooks === 1 ? 'webhook' : 'webhooks'}{' '}
+          <code>charge.captured</code> {captureWebhooks === 1 ? 'gerado' : 'gerados'} pela disputa.
+        </p>
       )}
 
       <p className={styles.summary}>

@@ -5,12 +5,26 @@ import Card from '../components/Card.jsx'
 import Input from '../components/Input.jsx'
 import { useConsole } from '../console/useConsole.js'
 import ConcurrencyScoreboard from './ConcurrencyScoreboard.jsx'
+import { findWebhookEndpoint } from './findWebhookEndpoint.js'
 import { testChargeBody } from './testChargeBody.js'
 import styles from './Experiment.module.css'
 
 const AMOUNT_CENTS = 7500
 const MIN_ATTEMPTS = 2
 const MAX_ATTEMPTS = 50
+// Se a trava falhasse, seriam uma entrega da autorização e uma por captura, e a consulta precisa caber todas.
+const MAX_DELIVERIES = MAX_ATTEMPTS + 1
+
+// Sem webhook cadastrado, um zero pareceria evento perdido, então o nulo faz o placar avisar.
+async function countCaptureWebhooks(chargeId) {
+  const endpoint = await findWebhookEndpoint()
+  if (!endpoint) {
+    return null
+  }
+  // A entrega é gravada na mesma transação da captura, então não há o que esperar.
+  const { items } = await api.get(`/webhook-deliveries?chargeId=${chargeId}&size=${MAX_DELIVERIES}`)
+  return items.filter((delivery) => delivery.eventType === 'charge.captured').length
+}
 
 function ConcurrencyExperiment() {
   const { highlight } = useConsole()
@@ -46,7 +60,8 @@ function ConcurrencyExperiment() {
 
       // A prova final vem do banco: por mais pedidos que tenham chegado, a cobrança precisa ter uma captura só.
       const finalCharge = await api.get(`/charges/${charge.id}`)
-      setResult({ outcomes, durationMs, finalCharge })
+      const captureWebhooks = await countCaptureWebhooks(charge.id)
+      setResult({ outcomes, durationMs, finalCharge, captureWebhooks })
     } catch (caught) {
       setError(caught)
     } finally {
@@ -58,7 +73,8 @@ function ConcurrencyExperiment() {
     <Card title="Concorrência">
       <p className={styles.description}>
         Cria uma cobrança autorizada e dispara várias capturas dela ao mesmo tempo, cada uma com a sua Idempotency-Key.
-        O esperado é uma captura dar certo e todas as outras receberem 409. As capturas ficam destacadas no console.
+        O esperado é uma captura dar certo, todas as outras receberem 409 e sair um webhook só. As capturas ficam
+        destacadas no console.
       </p>
       <form className={styles.form} onSubmit={start}>
         <Input
