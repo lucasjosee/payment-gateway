@@ -11,6 +11,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,6 +20,9 @@ import java.util.UUID;
 public class ChargeService {
 
 	private static final Logger log = LoggerFactory.getLogger(ChargeService.class);
+
+	private static final String PIX_CURRENCY = "BRL";
+	private static final Duration DEFAULT_PIX_DEADLINE = Duration.ofMinutes(15);
 
 	private final ChargeRepository chargeRepository;
 	private final FraudService fraudService;
@@ -34,6 +39,24 @@ public class ChargeService {
 
 	@Transactional
 	public ChargeResponse create(UUID merchantId, CreateChargeRequest request) {
+		return request.pix() != null ? createPix(merchantId, request) : createCardCharge(merchantId, request);
+	}
+
+	// O Pix não passa pelo antifraude porque as regras dependem do cartão e decidem um status que o Pix não tem.
+	private ChargeResponse createPix(UUID merchantId, CreateChargeRequest request) {
+		if (!PIX_CURRENCY.equals(request.currency())) {
+			throw new PixCurrencyNotSupportedException();
+		}
+		Long requestedSeconds = request.pix().expiresInSeconds();
+		Duration deadline = requestedSeconds != null ? Duration.ofSeconds(requestedSeconds) : DEFAULT_PIX_DEADLINE;
+
+		Charge saved = chargeRepository.save(
+				Charge.pix(merchantId, request.amountCents(), request.currency(), Instant.now().plus(deadline)));
+		log.info("Pix criado: a cobrança {} nasce PENDING e vence em {}", saved.getId(), saved.getExpiresAt());
+		return publishStatusChange(saved);
+	}
+
+	private ChargeResponse createCardCharge(UUID merchantId, CreateChargeRequest request) {
 		// O número completo só é usado nestas duas linhas. Daqui para frente circulam apenas os 4 últimos
 		// dígitos e o fingerprint, e é só isso que chega ao antifraude e ao banco.
 		String cardNumber = request.card().number();
@@ -119,12 +142,14 @@ public class ChargeService {
 		List<ChargeResponse.Event> events = charge.getEvents().stream()
 				.map(event -> new ChargeResponse.Event(event.getFromStatus(), event.getToStatus(), event.getCreatedAt()))
 				.toList();
-		return new ChargeResponse(charge.getId(), charge.getStatus(), charge.getAmountCents(), charge.getCurrency(),
-				charge.getCardLast4(), charge.getDeclineReason(), charge.getCreatedAt(), events);
+		return new ChargeResponse(charge.getId(), charge.getStatus(), charge.getPaymentMethod(), charge.getAmountCents(),
+				charge.getCurrency(), charge.getCardLast4(), charge.getDeclineReason(), charge.getExpiresAt(),
+				charge.getCreatedAt(), events);
 	}
 
 	private ChargeSummary toSummary(Charge charge) {
-		return new ChargeSummary(charge.getId(), charge.getStatus(), charge.getAmountCents(), charge.getCurrency(),
-				charge.getCardLast4(), charge.getDeclineReason(), charge.getCreatedAt());
+		return new ChargeSummary(charge.getId(), charge.getStatus(), charge.getPaymentMethod(), charge.getAmountCents(),
+				charge.getCurrency(), charge.getCardLast4(), charge.getDeclineReason(), charge.getExpiresAt(),
+				charge.getCreatedAt());
 	}
 }
