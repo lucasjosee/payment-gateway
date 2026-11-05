@@ -21,6 +21,10 @@
   gap: var(--space-3);
 }
 
+.stale {
+  color: var(--color-warning-text);
+}
+
 .muted {
   color: var(--color-text-muted);
 }

@@ -31,7 +31,7 @@ function ConsolePanel() {
   const { entries, highlightedTag, tab, logFilter, clear, selectTab, showServerLogs, clearLogFilter } = useConsole()
   const { merchant } = useSession()
   const [preferences, setPreferences] = useState(loadPreferences)
-  const { open, height, filter } = preferences
+  const { open, height, filter, showBackground } = preferences
 
   const showingServer = tab === 'server'
   const serverLogs = useServerLogs(open && showingServer && merchant !== null, merchant?.id)
@@ -42,7 +42,10 @@ function ConsolePanel() {
     setPreferences((current) => ({ ...current, ...changes }))
   }
 
-  const errors = entries.filter(isError)
+  // Escondidas, as consultas automáticas não contam em nada. Se contassem, o total e os erros subiriam sozinhos.
+  const backgroundCount = entries.filter((entry) => entry.background).length
+  const visibleEntries = showBackground ? entries : entries.filter((entry) => !entry.background)
+  const errors = visibleEntries.filter(isError)
   const showingErrors = filter === 'errors'
   const logLines = logFilter ? serverLogs.lines.filter((line) => line.requestId === logFilter) : serverLogs.lines
 
@@ -56,7 +59,7 @@ function ConsolePanel() {
             <path d="M6 15l6-6 6 6" />
           </svg>
           Console
-          <span className={styles.count}>{entries.length}</span>
+          <span className={styles.count}>{visibleEntries.length}</span>
         </Button>
 
         {open && (
@@ -86,6 +89,15 @@ function ConsolePanel() {
                 Só erros ({errors.length})
               </Button>
             </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              aria-pressed={showBackground}
+              title="Consultas que a página repete sozinha, como a da lista de entregas"
+              onClick={() => update({ showBackground: !showBackground })}
+            >
+              Automáticas ({backgroundCount})
+            </Button>
             <Button variant="ghost" size="sm" onClick={clear} disabled={entries.length === 0}>
               Limpar
             </Button>
@@ -104,7 +116,7 @@ function ConsolePanel() {
 
       {open && !showingServer && (
         <ConsoleTable
-          entries={showingErrors ? errors : entries}
+          entries={showingErrors ? errors : visibleEntries}
           highlightedTag={highlightedTag}
           height={height}
           emptyMessage={

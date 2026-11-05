@@ -1,8 +1,20 @@
-// Uma aba aberta por horas acumularia requisições sem fim. Passado o limite, as mais antigas saem.
+// Uma aba aberta por horas acumularia requisições sem fim. Passado o limite, as mais antigas saem. As consultas
+// automáticas têm um limite só delas: dividindo o mesmo, em poucos minutos elas expulsariam, sem aparecer na tela, as
+// requisições que a pessoa fez.
 const MAX_ENTRIES = 200
+const MAX_BACKGROUND_ENTRIES = 50
 
 // highlightedTag é a tag das requisições que o console destaca, as do último experimento do laboratório.
 export const initialConsoleState = { entries: [], highlightedTag: null, tab: 'requests', logFilter: null }
+
+function addEntry(entries, entry) {
+  const sameKind = entries.filter((current) => current.background === entry.background)
+  const limit = entry.background ? MAX_BACKGROUND_ENTRIES : MAX_ENTRIES
+  if (sameKind.length < limit) {
+    return [...entries, entry]
+  }
+  return [...entries.filter((current) => current !== sameKind[0]), entry]
+}
 
 export function consoleReducer(state, action) {
   switch (action.type) {
@@ -15,7 +27,7 @@ export function consoleReducer(state, action) {
       const known = state.entries.some((current) => current.id === entry.id)
       const entries = known
         ? state.entries.map((current) => (current.id === entry.id ? entry : current))
-        : [...state.entries, entry].slice(-MAX_ENTRIES)
+        : addEntry(state.entries, entry)
       return { ...state, entries }
     }
     case 'highlighted':

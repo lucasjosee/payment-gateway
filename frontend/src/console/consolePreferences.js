@@ -5,7 +5,7 @@ const DEFAULT_HEIGHT = 240
 // Num notebook de tela baixa, 240px de console deixariam pouco espaço para a página, então a altura inicial é no
 // máximo 30% da janela. Depois que a pessoa arrasta a alça, vale a altura que ela escolheu.
 function defaultPreferences() {
-  return { open: true, height: Math.min(DEFAULT_HEIGHT, Math.round(window.innerHeight * 0.3)), filter: 'all' }
+  return { open: true, height: Math.min(DEFAULT_HEIGHT, Math.round(window.innerHeight * 0.3)), filter: 'all', showBackground: false }
 }
 
 export function loadPreferences() {

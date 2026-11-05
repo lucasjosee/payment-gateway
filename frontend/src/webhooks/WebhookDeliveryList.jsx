@@ -78,7 +78,14 @@ function WebhookDeliveryList() {
           {loading ? 'Atualizando…' : 'Atualizar'}
         </Button>
       </div>
-      <div className={styles.content}>{renderContent()}</div>
+      <div className={styles.content}>
+        {data && error && (
+          <p role="status" className={styles.stale}>
+            A lista pode estar desatualizada. {error.message} A página continua tentando.
+          </p>
+        )}
+        {renderContent()}
+      </div>
     </section>
   )
 }

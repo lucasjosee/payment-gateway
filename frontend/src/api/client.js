@@ -49,7 +49,8 @@ export function subscribeToRequests(listener) {
 }
 
 export const api = {
-  get: (path) => request('GET', path),
+  // background: true marca uma consulta que a página repete sozinha. O console as esconde por padrão.
+  get: (path, { background } = {}) => request('GET', path, { background }),
   // idempotent: true gera uma Idempotency-Key nova para o pedido. Quem precisa mostrar ou repetir a chave, como a
   // tela de nova cobrança, passa a sua em idempotencyKey. A tag marca os pedidos de um mesmo experimento do
   // laboratório, para o console destacá-los juntos.
@@ -62,7 +63,7 @@ export const api = {
   put: (path, { body } = {}) => request('PUT', path, { body }),
 }
 
-async function request(method, path, { body, idempotencyKey, tag } = {}) {
+async function request(method, path, { body, idempotencyKey, tag, background = false } = {}) {
   const headers = {}
   if (apiKey) {
     headers['X-Api-Key'] = apiKey
@@ -77,6 +78,7 @@ async function request(method, path, { body, idempotencyKey, tag } = {}) {
   const entry = {
     id: crypto.randomUUID(),
     tag: tag ?? null,
+    background,
     method,
     path: BASE_PATH + path,
     startedAt: new Date().toISOString(),
