@@ -10,7 +10,10 @@ public enum ChargeStatus {
 	DECLINED,
 	CAPTURED,
 	CANCELED,
-	REFUNDED;
+	REFUNDED,
+	PENDING,
+	PAID,
+	EXPIRED;
 
 	public boolean canTransitionTo(ChargeStatus next) {
 		return allowedTransitions().contains(next);
@@ -20,10 +23,11 @@ public enum ChargeStatus {
 	// pode ir, o código deixa de compilar, em vez de o estado novo virar um beco sem saída sem ninguém perceber.
 	private Set<ChargeStatus> allowedTransitions() {
 		return switch (this) {
-			// Cancelar só vale enquanto o dinheiro ainda não foi capturado. Depois disso, ele volta por estorno.
+			// Cancelar só vale enquanto o dinheiro ainda não entrou. Depois disso, ele volta por estorno.
 			case AUTHORIZED -> Set.of(CAPTURED, CANCELED);
-			case CAPTURED -> Set.of(REFUNDED);
-			case DECLINED, CANCELED, REFUNDED -> Set.of();
+			case PENDING -> Set.of(PAID, CANCELED, EXPIRED);
+			case CAPTURED, PAID -> Set.of(REFUNDED);
+			case DECLINED, CANCELED, REFUNDED, EXPIRED -> Set.of();
 		};
 	}
 }

@@ -39,11 +39,18 @@ public class Charge {
 	@Enumerated(EnumType.STRING)
 	private ChargeStatus status;
 
+	@Enumerated(EnumType.STRING)
+	@Column(updatable = false)
+	private PaymentMethod paymentMethod;
+
 	private String cardLast4;
 
 	private String cardFingerprint;
 
 	private String declineReason;
+
+	@Column(updatable = false)
+	private Instant expiresAt;
 
 	@Version
 	private Long version;
@@ -60,30 +67,63 @@ public class Charge {
 	protected Charge() {
 	}
 
-	private Charge(UUID merchantId, long amountCents, String currency, String cardLast4, String cardFingerprint,
-			ChargeStatus initialStatus, String declineReason) {
+	private Charge(UUID merchantId, long amountCents, String currency, PaymentMethod paymentMethod,
+			ChargeStatus initialStatus) {
 		this.merchantId = merchantId;
 		this.amountCents = amountCents;
 		this.currency = currency;
-		this.cardLast4 = cardLast4;
-		this.cardFingerprint = cardFingerprint;
+		this.paymentMethod = paymentMethod;
 		this.status = initialStatus;
-		this.declineReason = declineReason;
 		this.createdAt = Instant.now();
-		// A cobrança já nasce autorizada ou recusada, então o primeiro evento não tem estado de origem.
+		// A cobrança já nasce com um status, então o primeiro evento não tem estado de origem.
 		events.add(new ChargeEvent(this, null, initialStatus));
+	}
+
+	private static Charge card(UUID merchantId, long amountCents, String currency, String cardLast4,
+			String cardFingerprint, ChargeStatus initialStatus) {
+		Charge charge = new Charge(merchantId, amountCents, currency, PaymentMethod.CARD, initialStatus);
+		charge.cardLast4 = cardLast4;
+		charge.cardFingerprint = cardFingerprint;
+		return charge;
 	}
 
 	public static Charge authorized(UUID merchantId, long amountCents, String currency, String cardLast4,
 			String cardFingerprint) {
-		return new Charge(merchantId, amountCents, currency, cardLast4, cardFingerprint,
-				ChargeStatus.AUTHORIZED, null);
+		return card(merchantId, amountCents, currency, cardLast4, cardFingerprint, ChargeStatus.AUTHORIZED);
 	}
 
 	public static Charge declined(UUID merchantId, long amountCents, String currency, String cardLast4,
 			String cardFingerprint, String declineReason) {
-		return new Charge(merchantId, amountCents, currency, cardLast4, cardFingerprint,
-				ChargeStatus.DECLINED, declineReason);
+		Charge charge = card(merchantId, amountCents, currency, cardLast4, cardFingerprint, ChargeStatus.DECLINED);
+		charge.declineReason = declineReason;
+		return charge;
+	}
+
+	public static Charge pix(UUID merchantId, long amountCents, String currency, Instant expiresAt) {
+		Charge charge = new Charge(merchantId, amountCents, currency, PaymentMethod.PIX, ChargeStatus.PENDING);
+		charge.expiresAt = expiresAt;
+		return charge;
+	}
+
+	// O prazo só é conferido em PENDING porque uma cobrança de cartão não tem prazo, e um Pix que já saiu desse status
+	// deve receber o erro da máquina de estados, e não um erro de prazo.
+	public void pay(Instant now) {
+		if (status == ChargeStatus.PENDING && isPastDeadline(now)) {
+			throw new PixDeadlineException("O prazo de pagamento deste Pix já venceu.");
+		}
+		transitionTo(ChargeStatus.PAID);
+	}
+
+	public void expire(Instant now) {
+		if (status == ChargeStatus.PENDING && !isPastDeadline(now)) {
+			throw new PixDeadlineException("Este Pix ainda está dentro do prazo e não pode expirar.");
+		}
+		transitionTo(ChargeStatus.EXPIRED);
+	}
+
+	// O pagamento e a expiração usam a mesma conta, então todo instante permite um e só um dos dois.
+	private boolean isPastDeadline(Instant now) {
+		return !now.isBefore(expiresAt);
 	}
 
 	public void transitionTo(ChargeStatus next) {
@@ -114,12 +154,20 @@ public class Charge {
 		return status;
 	}
 
+	public PaymentMethod getPaymentMethod() {
+		return paymentMethod;
+	}
+
 	public String getCardLast4() {
 		return cardLast4;
 	}
 
 	public String getDeclineReason() {
 		return declineReason;
+	}
+
+	public Instant getExpiresAt() {
+		return expiresAt;
 	}
 
 	public Instant getCreatedAt() {
