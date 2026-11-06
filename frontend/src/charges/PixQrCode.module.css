@@ -1,0 +1,7 @@
+.qrCode {
+  display: block;
+  width: 12rem;
+  height: 12rem;
+  background: var(--color-qr-light);
+  fill: var(--color-qr-dark);
+}

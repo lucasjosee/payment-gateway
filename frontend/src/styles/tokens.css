@@ -32,6 +32,10 @@
   /* No tema claro, o laranja do acento não chega a 3:1 contra o fundo, então o anel de foco usa um mais escuro. */
   --color-focus: light-dark(#d9480f, #ff6b1a);
 
+  /* Não muda com o tema, porque nem todo leitor reconhece um QR code invertido. */
+  --color-qr-light: #ffffff;
+  --color-qr-dark: #17191c;
+
   /* Tons de status, para badges e mensagens. Cada par de fundo e texto passa em 4,5:1. */
   --color-neutral-bg: light-dark(#eef0f3, #2a2f37);
   --color-neutral-text: light-dark(#3f4550, #c4cad3);
