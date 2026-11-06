@@ -37,7 +37,7 @@ public class MerchantService {
 
 	@Transactional(readOnly = true)
 	public MerchantResponse findById(UUID id) {
-		// O id vem de uma chave válida, e a chave estrangeira garante que toda chave tem lojista.
+		// O id vem de uma chave válida ou de uma cobrança, e as chaves estrangeiras garantem que as duas têm lojista.
 		// Não encontrar aqui seria um bug, então o 500 do handler genérico é a resposta certa.
 		Merchant merchant = merchantRepository.findById(id).orElseThrow();
 		return new MerchantResponse(merchant.getId(), merchant.getName(), merchant.getEmail());

@@ -36,6 +36,10 @@ public class SecurityConfig {
 						// O receptor de teste faz o papel do servidor do lojista, que recebe o webhook sem API key. A rota
 						// só existe no profile demo. Fora dele, o pedido passa por aqui e dá 404.
 						.requestMatchers(HttpMethod.POST, "/dev/webhook-receiver/*").permitAll()
+						// O simulador faz o papel do banco de quem paga, que não tem API key. Como num QR code de Pix,
+						// basta ter o id da cobrança. Estas rotas também só existem no profile demo.
+						.requestMatchers(HttpMethod.GET, "/dev/pix/*").permitAll()
+						.requestMatchers(HttpMethod.POST, "/dev/pix/*/pay").permitAll()
 						.anyRequest().authenticated())
 				// Erros do Spring Security acontecem nos filtros, antes de chegar a qualquer controller, e por isso
 				// não passam pelo ApiExceptionHandler. Encaminhar para o resolver faz o 401 sair em Problem Details.

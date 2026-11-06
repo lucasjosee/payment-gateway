@@ -14,6 +14,8 @@ public interface ChargeRepository extends JpaRepository<Charge, UUID> {
 
 	Optional<Charge> findByIdAndMerchantId(UUID id, UUID merchantId);
 
+	Optional<Charge> findByIdAndPaymentMethod(UUID id, PaymentMethod paymentMethod);
+
 	// O id desempata cobranças criadas no mesmo instante. Sem um critério único, o banco pode devolver as empatadas
 	// em ordem diferente a cada consulta, e uma delas apareceria em duas páginas ou em nenhuma.
 	Page<Charge> findByMerchantIdOrderByCreatedAtDescIdDesc(UUID merchantId, Pageable pageable);
