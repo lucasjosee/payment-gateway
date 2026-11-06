@@ -104,4 +104,3 @@ A interface abre em `http://localhost:5173` e o Swagger em `http://localhost:808
 - Fora do ambiente local, defina `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `CARD_FINGERPRINT_KEY`, `IDEMPOTENCY_HASH_KEY` e `WEBHOOK_SIGNING_KEY`. Na AWS, os segredos vêm do Parameter Store.
 - O simulador de pagamento do Pix (`/dev/pix`) e o receptor de teste de webhooks só existem no profile `demo`. A página `/pix/:id` usa o simulador, sem API key: como num QR code de Pix, quem tem o link consegue pagar.
 - O QR code leva o endereço da própria página. Para escanear com o celular na mesma rede, rode `npm run dev -- --host` e abra o front pelo IP da máquina, e não por `localhost`.
-- Para apresentar o projeto, há um [roteiro de demo de 7 minutos](docs/roteiro-demo.md).
