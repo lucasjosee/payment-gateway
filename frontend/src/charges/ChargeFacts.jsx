@@ -9,8 +9,12 @@ function ChargeFacts({ charge }) {
     <dl className={styles.facts}>
       <dt>Valor</dt>
       <dd>{formatCents(charge.amountCents, charge.currency)}</dd>
-      <dt>Cartão</dt>
-      <dd>•••• {charge.cardLast4}</dd>
+      {charge.cardLast4 && (
+        <>
+          <dt>Cartão</dt>
+          <dd>•••• {charge.cardLast4}</dd>
+        </>
+      )}
       {charge.declineReason && (
         <>
           <dt>Motivo</dt>

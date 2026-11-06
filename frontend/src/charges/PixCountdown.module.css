@@ -1,0 +1,15 @@
+.countdown {
+  color: var(--color-text-muted);
+}
+
+/* Com algarismos de largura igual, o texto não treme a cada segundo. */
+.time {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+}
+
+.expired {
+  color: var(--color-warning-text);
+  font-weight: var(--weight-semibold);
+}
