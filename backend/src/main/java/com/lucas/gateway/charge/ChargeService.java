@@ -111,6 +111,15 @@ public class ChargeService {
 	}
 
 	@Transactional
+	public void expirePix(UUID chargeId) {
+		Charge charge = findPixCharge(chargeId);
+		ChargeStatus previous = charge.getStatus();
+		charge.expire(Instant.now());
+		log.info("Máquina de estados aceitou {} -> {} na cobrança {}", previous, charge.getStatus(), chargeId);
+		publishStatusChange(charge);
+	}
+
+	@Transactional
 	public ChargeResponse capture(UUID merchantId, UUID chargeId) {
 		return transition(merchantId, chargeId, ChargeStatus.CAPTURED);
 	}
@@ -143,16 +152,17 @@ public class ChargeService {
 		return response;
 	}
 
-	// Toda rota do lojista que recebe o id de uma cobrança busca por aqui, para nenhuma delas esquecer de conferir o dono.
-	// O lojista entra no filtro da própria consulta, então a cobrança de outro lojista dá o mesmo 404 de um id
+	// Toda rota do lojista que recebe o id de uma cobrança busca por aqui, para nenhuma delas esquecer de conferir
+	// o dono. O lojista entra no filtro da própria consulta, então a cobrança de outro lojista dá o mesmo 404 de um id
 	// que não existe. Um 403 confirmaria que aquele id existe, e isso já é informação demais para um estranho.
 	private Charge findOwnedCharge(UUID merchantId, UUID chargeId) {
 		return chargeRepository.findByIdAndMerchantId(chargeId, merchantId)
 				.orElseThrow(ChargeNotFoundException::new);
 	}
 
-	// É a única busca que não confere o dono, porque quem paga um Pix não é o lojista. Ela só encontra Pix, para uma
-	// cobrança de cartão dar o mesmo 404 de um id que não existe e nunca aparecer numa rota pública.
+	// É a única busca que não confere o dono, porque quem paga um Pix e o job de expiração não são o lojista. Ela só
+	// encontra Pix, para uma cobrança de cartão dar o mesmo 404 de um id que não existe e nunca aparecer numa rota
+	// pública.
 	private Charge findPixCharge(UUID chargeId) {
 		return chargeRepository.findByIdAndPaymentMethod(chargeId, PaymentMethod.PIX)
 				.orElseThrow(ChargeNotFoundException::new);
