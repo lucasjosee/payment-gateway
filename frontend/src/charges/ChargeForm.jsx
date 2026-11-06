@@ -3,7 +3,9 @@ import { api } from '../api/client.js'
 import Button from '../components/Button.jsx'
 import Card from '../components/Card.jsx'
 import Input from '../components/Input.jsx'
+import CardFields from './CardFields.jsx'
 import IdempotencyKeyField from './IdempotencyKeyField.jsx'
+import PaymentMethodPicker from './PaymentMethodPicker.jsx'
 import TestCardButtons from './TestCardButtons.jsx'
 import { parseReaisToCents } from './money.js'
 import { testCardFields } from './testCards.js'
@@ -21,14 +23,33 @@ function amountErrorFor(cents) {
   return null
 }
 
+// Com o prazo em branco, ele fica de fora do pedido e a API aplica o padrão dela.
+function paymentFields(method, card, deadlineSeconds) {
+  if (method === 'pix') {
+    return { pix: deadlineSeconds ? { expiresInSeconds: Number(deadlineSeconds) } : {} }
+  }
+  return { card: { ...card, number: card.number.replace(/\s/g, '') } }
+}
+
 function ChargeForm({ onCharged }) {
+  const [method, setMethod] = useState('card')
   const [amount, setAmount] = useState('')
   const [amountError, setAmountError] = useState(null)
   const [currency, setCurrency] = useState('BRL')
   const [card, setCard] = useState(EMPTY_CARD)
+  const [deadlineSeconds, setDeadlineSeconds] = useState('')
   const [idempotencyKey, setIdempotencyKey] = useState(() => crypto.randomUUID())
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+
+  function pickMethod(next) {
+    setMethod(next)
+    setError(null)
+    // O cartão de teste "Moeda USD" pode ter deixado outra moeda no campo, e o Pix só aceita BRL.
+    if (next === 'pix') {
+      setCurrency('BRL')
+    }
+  }
 
   function updateCard(changes) {
     setCard((current) => ({ ...current, ...changes }))
@@ -53,7 +74,7 @@ function ChargeForm({ onCharged }) {
     setSubmitting(true)
     try {
       const charge = await api.post('/charges', {
-        body: { amountCents, currency, card: { ...card, number: card.number.replace(/\s/g, '') } },
+        body: { amountCents, currency, ...paymentFields(method, card, deadlineSeconds) },
         idempotencyKey,
       })
       onCharged(charge)
@@ -71,7 +92,8 @@ function ChargeForm({ onCharged }) {
   return (
     <Card title="Dados da cobrança">
       <form className={styles.form} onSubmit={handleSubmit}>
-        <TestCardButtons onPick={pickTestCard} />
+        <PaymentMethodPicker value={method} onChange={pickMethod} />
+        {method === 'card' && <TestCardButtons onPick={pickTestCard} />}
 
         <div className={styles.amountRow}>
           <Input
@@ -95,35 +117,21 @@ function ChargeForm({ onCharged }) {
           />
         </div>
 
-        {/* Sem autoComplete="off", o navegador poderia oferecer um cartão de verdade salvo nele. */}
-        <Input
-          label="Número do cartão"
-          value={card.number}
-          onChange={(event) => updateCard({ number: event.target.value })}
-          inputMode="numeric"
-          autoComplete="off"
-          required
-        />
-        <div className={styles.cardRow}>
+        {method === 'card' ? (
+          <CardFields card={card} onChange={updateCard} />
+        ) : (
           <Input
-            label="Validade"
-            value={card.expiry}
-            onChange={(event) => updateCard({ expiry: event.target.value })}
-            placeholder="AAAA-MM"
-            pattern="\d{4}-\d{2}"
-            autoComplete="off"
-            required
-          />
-          <Input
-            label="CVV"
-            value={card.cvv}
-            onChange={(event) => updateCard({ cvv: event.target.value })}
+            label="Prazo em segundos"
+            value={deadlineSeconds}
+            onChange={(event) => setDeadlineSeconds(event.target.value)}
+            hint="Em branco, a API usa o padrão de 15 minutos. O máximo é 86400, que dá um dia."
+            placeholder="900"
             inputMode="numeric"
-            maxLength={4}
+            pattern="[0-9]+"
+            maxLength={6}
             autoComplete="off"
-            required
           />
-        </div>
+        )}
 
         <IdempotencyKeyField value={idempotencyKey} onChange={setIdempotencyKey} />
 

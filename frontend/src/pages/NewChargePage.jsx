@@ -11,7 +11,7 @@ function NewChargePage() {
     <>
       <h1>Nova cobrança</h1>
       <p className={styles.intro}>
-        Escolha um cartão de teste, informe o valor e crie a cobrança. O pedido e a resposta completos aparecem no
+        Escolha entre cartão e Pix, informe o valor e crie a cobrança. O pedido e a resposta completos aparecem no
         console, logo abaixo.
       </p>
       <div className={styles.layout}>

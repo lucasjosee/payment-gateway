@@ -61,7 +61,9 @@
   background: var(--color-surface-sunken);
 }
 
-/* Botões que ligam e desligam algo, como o do tema, mostram quando estão ligados. */
-.button[aria-pressed='true'] {
+/* Botões que ligam e desligam algo, como o do tema, mostram quando estão ligados. O hover precisa entrar aqui porque
+   as regras de hover acima pesam mais, e o botão recém-clicado, ainda com o mouse em cima, não mostraria que ligou. */
+.button[aria-pressed='true'],
+.button[aria-pressed='true']:hover:not(:disabled) {
   background: var(--color-accent-subtle);
 }
