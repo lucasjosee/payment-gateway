@@ -4,6 +4,8 @@ import ChargeFacts from '../charges/ChargeFacts.jsx'
 import ChargeTimeline from '../charges/ChargeTimeline.jsx'
 import { chargeStatus } from '../charges/chargeStatus.js'
 import { formatCents } from '../charges/money.js'
+import PixCountdown from '../charges/PixCountdown.jsx'
+import PixPaymentLink from '../charges/PixPaymentLink.jsx'
 import { useCharge } from '../charges/useCharge.js'
 import Badge from '../components/Badge.jsx'
 import Card from '../components/Card.jsx'
@@ -45,6 +47,12 @@ function ChargeDetailPage() {
           <div className={styles.column}>
             <Card title="Dados">
               <ChargeFacts charge={charge} />
+              {charge.status === 'PENDING' && (
+                <>
+                  <PixCountdown expiresAt={charge.expiresAt} />
+                  <PixPaymentLink chargeId={charge.id} />
+                </>
+              )}
             </Card>
             <Card title="Linha do tempo">
               <ChargeTimeline events={charge.events} />

@@ -7,9 +7,15 @@ import styles from './ChargeActions.module.css'
 
 // Espelha as transições do enum ChargeStatus no backend, para habilitar só os botões que valem no estado atual.
 const ACTIONS = [
-  { path: 'capture', label: 'Capturar', pendingLabel: 'Capturando…', from: 'AUTHORIZED', variant: 'primary' },
-  { path: 'cancel', label: 'Cancelar', pendingLabel: 'Cancelando…', from: 'AUTHORIZED', variant: 'secondary' },
-  { path: 'refund', label: 'Estornar', pendingLabel: 'Estornando…', from: 'CAPTURED', variant: 'secondary' },
+  { path: 'capture', label: 'Capturar', pendingLabel: 'Capturando…', from: ['AUTHORIZED'], variant: 'primary' },
+  {
+    path: 'cancel',
+    label: 'Cancelar',
+    pendingLabel: 'Cancelando…',
+    from: ['AUTHORIZED', 'PENDING'],
+    variant: 'secondary',
+  },
+  { path: 'refund', label: 'Estornar', pendingLabel: 'Estornando…', from: ['CAPTURED', 'PAID'], variant: 'secondary' },
 ]
 
 function ChargeActions({ charge, onUpdated }) {
@@ -17,7 +23,7 @@ function ChargeActions({ charge, onUpdated }) {
   const [pendingAction, setPendingAction] = useState(null)
   const [error, setError] = useState(null)
 
-  const hasAvailableAction = ACTIONS.some((action) => action.from === charge.status)
+  const hasAvailableAction = ACTIONS.some((action) => action.from.includes(charge.status))
 
   async function run(action) {
     setPendingAction(action.path)
@@ -41,7 +47,7 @@ function ChargeActions({ charge, onUpdated }) {
             key={action.path}
             variant={action.variant}
             onClick={() => run(action)}
-            disabled={pendingAction !== null || (!demoMode && action.from !== charge.status)}
+            disabled={pendingAction !== null || (!demoMode && !action.from.includes(charge.status))}
           >
             {pendingAction === action.path ? action.pendingLabel : action.label}
           </Button>
