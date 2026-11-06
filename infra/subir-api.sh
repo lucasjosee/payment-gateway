@@ -30,7 +30,8 @@ read_secret() {
 DB_PASSWORD=$(read_secret /ponte/db-password)
 CARD_FINGERPRINT_KEY=$(read_secret /ponte/card-fingerprint-key)
 IDEMPOTENCY_HASH_KEY=$(read_secret /ponte/idempotency-hash-key)
-export DB_PASSWORD CARD_FINGERPRINT_KEY IDEMPOTENCY_HASH_KEY
+WEBHOOK_SIGNING_KEY=$(read_secret /ponte/webhook-signing-key)
+export DB_PASSWORD CARD_FINGERPRINT_KEY IDEMPOTENCY_HASH_KEY WEBHOOK_SIGNING_KEY
 
 docker build -t "$CONTAINER" "$REPO_DIR/backend"
 
@@ -47,6 +48,7 @@ docker run -d \
 	-e DB_PASSWORD \
 	-e CARD_FINGERPRINT_KEY \
 	-e IDEMPOTENCY_HASH_KEY \
+	-e WEBHOOK_SIGNING_KEY \
 	-e SPRING_PROFILES_ACTIVE=demo \
 	"$CONTAINER"
 
