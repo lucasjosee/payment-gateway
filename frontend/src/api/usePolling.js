@@ -32,8 +32,9 @@ export function usePolling(path, { until, tag } = {}) {
           return
         }
       } catch (error) {
-        // Repetir não faz aparecer uma rota que não existe, como a do receptor de teste fora do profile demo.
-        const definitive = error.status === 404
+        // Repetir não faz aparecer uma rota que não existe, como a do receptor de teste fora do profile demo, nem
+        // conserta um id com formato inválido, que dá 400.
+        const definitive = error.status === 404 || error.status === 400
         if (active) {
           // Uma repetição que falha não apaga o que já está na tela, porque a seguinte ainda pode dar certo.
           const keepData = background && !definitive

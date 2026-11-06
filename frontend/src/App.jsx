@@ -5,6 +5,7 @@ import ChargesPage from './pages/ChargesPage.jsx'
 import LabPage from './pages/LabPage.jsx'
 import NewChargePage from './pages/NewChargePage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
+import PixPaymentPage from './pages/PixPaymentPage.jsx'
 import WebhooksPage from './pages/WebhooksPage.jsx'
 import WelcomePage from './pages/WelcomePage.jsx'
 import RequireSession from './session/RequireSession.jsx'
@@ -14,6 +15,8 @@ function App() {
   // confundida com o id "nova" de /cobrancas/:id, seja qual for a ordem das linhas.
   return (
     <Routes>
+      {/* Fica fora do Layout porque quem paga não é o lojista: não vê o menu dele nem o console. */}
+      <Route path="/pix/:id" element={<PixPaymentPage />} />
       {/* Uma rota sem path só embrulha as outras: o Layout aparece em todas, e o <Outlet> dele mostra a página. */}
       <Route element={<Layout />}>
         <Route path="/" element={<WelcomePage />} />

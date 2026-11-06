@@ -11,20 +11,27 @@ function formatTimeLeft(totalSeconds) {
 
 // O tempo restante sai sempre da conta com o prazo, e não de um desconto a cada segundo. O navegador atrasa os
 // cronômetros de uma aba escondida, e um desconto ficaria para trás junto com eles.
-function PixCountdown({ expiresAt }) {
+function PixCountdown({ expiresAt, onExpire }) {
   const [now, setNow] = useState(() => Date.now())
   const msLeft = Date.parse(expiresAt) - now
+  const expired = msLeft <= 0
+
+  useEffect(() => {
+    if (expired) {
+      onExpire?.()
+    }
+  }, [expired, onExpire])
 
   // Acorda na virada do próximo segundo, em vez de a cada 1000 ms, para o "Vencido" aparecer no horário exato do prazo.
   useEffect(() => {
-    if (msLeft <= 0) {
+    if (expired) {
       return
     }
     const timer = setTimeout(() => setNow(Date.now()), msLeft % 1000 || 1000)
     return () => clearTimeout(timer)
-  }, [msLeft])
+  }, [expired, msLeft])
 
-  if (msLeft <= 0) {
+  if (expired) {
     return (
       <p role="timer" className={styles.expired}>
         Vencido
