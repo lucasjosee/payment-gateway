@@ -5,6 +5,10 @@ import { formatDateTime } from './dateTime.js'
 import { formatCents } from './money.js'
 import styles from '../components/DataTable.module.css'
 
+function paymentMethodText(charge) {
+  return charge.paymentMethod === 'PIX' ? 'Pix' : `Cartão •••• ${charge.cardLast4}`
+}
+
 function ChargeTable({ charges }) {
   return (
     <div className={styles.scroll}>
@@ -17,7 +21,7 @@ function ChargeTable({ charges }) {
             <th scope="col" className={styles.amount}>
               Valor
             </th>
-            <th scope="col">Cartão</th>
+            <th scope="col">Pagamento</th>
           </tr>
         </thead>
         <tbody>
@@ -37,7 +41,7 @@ function ChargeTable({ charges }) {
                   <Badge tone={tone}>{label}</Badge>
                 </td>
                 <td className={styles.amount}>{formatCents(charge.amountCents, charge.currency)}</td>
-                <td className={styles.muted}>•••• {charge.cardLast4}</td>
+                <td className={styles.muted}>{paymentMethodText(charge)}</td>
               </tr>
             )
           })}

@@ -6,6 +6,9 @@ const STATUSES = {
   CAPTURED: { label: 'Capturada', tone: 'success' },
   CANCELED: { label: 'Cancelada', tone: 'neutral' },
   REFUNDED: { label: 'Estornada', tone: 'neutral' },
+  PENDING: { label: 'Pendente', tone: 'info' },
+  PAID: { label: 'Paga', tone: 'success' },
+  EXPIRED: { label: 'Vencida', tone: 'warning' },
 }
 
 const DECLINE_REASONS = {
